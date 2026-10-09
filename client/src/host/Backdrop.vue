@@ -85,6 +85,15 @@ const raw = ref(true);
 /** Longest a scene stays hidden; a slow bake (Chromium takes seconds) shows the live art meanwhile. */
 const RAW_MAX_MS = 1000;
 
+/** Resolves once every finite animation on `el` or its ancestors has run out. */
+function settled(el: Element): Promise<unknown> {
+  const moving = document.getAnimations().filter((a) => {
+    const target = a.effect instanceof KeyframeEffect ? a.effect.target : null;
+    return a.playState === 'running' && target?.contains(el) && Number.isFinite(a.effect?.getComputedTiming().endTime);
+  });
+  return Promise.all(moving.map((a) => a.finished.catch(() => undefined)));
+}
+
 async function bake(fresh: boolean): Promise<void> {
   unbake();
   // two bakes of one theme can overlap; the older handle would be overwritten and its bitmaps never freed
@@ -96,6 +105,10 @@ async function bake(fresh: boolean): Promise<void> {
     await nextTick();
     // two frames: the async scene renders on the tick after its chunk resolves
     await new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)));
+    if (mine !== bakes || !art.value) return;
+    // bitmaps are cut at the scale measured now: inside the catalog's preview, still popping in from 0.4,
+    // they came out small and stayed blurry once it grew
+    await settled(art.value);
     if (mine !== bakes || !art.value) return;
     const baked = bakeScene(art.value, () => mine === bakes);
     unbake = baked.restore;
