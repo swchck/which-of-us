@@ -1,0 +1,177 @@
+@import '@fontsource/dela-gothic-one/cyrillic-400.css';
+@import '@fontsource/dela-gothic-one/latin-400.css';
+@import '@fontsource-variable/rubik/index.css';
+@import '@fontsource-variable/shantell-sans/index.css';
+@import 'tailwindcss';
+
+:root {
+  --ink: #1b1033;
+  --paper: #fffaf0;
+  --violet: #2a1458;
+  --violet-2: #3d1f7a;
+  --pink: #ff4f8b;
+  --yellow: #ffd23f;
+  --cyan: #22d3ee;
+  --green: #2ed47a;
+  --orange: #ff7a2f;
+  --muted: #cdbff2;
+  --line: 4px;
+  --shadow: 5px 7px 0 var(--ink);
+
+  /* shadcn semantic tokens, mapped onto the game's palette */
+  --background: var(--violet);
+  --foreground: #fff;
+  --card: var(--paper);
+  --card-foreground: var(--ink);
+  --primary: var(--yellow);
+  --primary-foreground: var(--ink);
+  --secondary: var(--pink);
+  --secondary-foreground: #fff;
+  --muted-foreground: var(--muted);
+  --accent: var(--cyan);
+  --accent-foreground: var(--ink);
+  --border: var(--ink);
+  --ring: var(--cyan);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
+  --color-ink: var(--ink);
+  --color-paper: var(--paper);
+  --color-violet: var(--violet);
+  --color-violet-2: var(--violet-2);
+  --color-pink: var(--pink);
+  --color-yellow: var(--yellow);
+  --color-cyan: var(--cyan);
+  --color-green: var(--green);
+  --color-orange: var(--orange);
+  --font-display: 'Dela Gothic One', 'Arial Black', system-ui, sans-serif;
+  --font-sans: 'Rubik Variable', 'Trebuchet MS', system-ui, sans-serif;
+  --font-hand: 'Shantell Sans Variable', 'Comic Sans MS', system-ui, sans-serif;
+  --shadow-sticker: 5px 7px 0 var(--ink);
+  --shadow-sticker-sm: 3px 4px 0 var(--ink);
+}
+
+html {
+  scroll-behavior: smooth;
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  background: var(--violet);
+  color: #fff;
+  font-family: var(--font-sans);
+  font-size: 18px;
+  line-height: 1.55;
+  overflow-x: hidden;
+}
+
+/* stage backdrop: spotlight rays from the top, painted once on a fixed layer */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(ellipse at 50% -10%, rgba(255, 255, 255, 0.18), transparent 55%),
+    repeating-conic-gradient(from 0deg at 50% -20%, rgba(255, 255, 255, 0.045) 0 7deg, transparent 7deg 14deg),
+    var(--violet);
+}
+
+:focus-visible {
+  outline: 4px solid var(--cyan);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+::selection {
+  background: var(--yellow);
+  color: var(--ink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+@keyframes bob {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-3deg);
+  }
+  50% {
+    transform: translateY(-12px) rotate(3deg);
+  }
+}
+
+@keyframes accordion-down {
+  from {
+    height: 0;
+  }
+  to {
+    height: var(--radix-accordion-content-height);
+  }
+}
+
+@keyframes accordion-up {
+  from {
+    height: var(--radix-accordion-content-height);
+  }
+  to {
+    height: 0;
+  }
+}
+
+/* the game's logo: yellow and white words, ink outline, pink drop */
+.logo-word {
+  font-family: var(--font-display);
+  line-height: 1;
+  text-shadow:
+    0 6px 0 var(--ink),
+    5px 0 0 var(--ink),
+    -5px 0 0 var(--ink),
+    0 -5px 0 var(--ink),
+    0 12px 0 var(--pink);
+}
+
+/* hand-lettered accents, like what players write in the game */
+.hand {
+  font-family: var(--font-hand);
+  font-weight: 700;
+}
+
+.sticker-tilt-l {
+  transform: rotate(-1.2deg);
+}
+.sticker-tilt-r {
+  transform: rotate(1.2deg);
+}
+
+/* class names without a bg- prefix so tailwind-merge cannot treat them as clashing with bg-* colours */
+.sheen-card {
+  background-image: linear-gradient(160deg, rgba(255, 255, 255, 0.7), transparent 35%);
+}
+.sheen-btn {
+  background-image: linear-gradient(rgba(255, 255, 255, 0.4), transparent 50%);
+}

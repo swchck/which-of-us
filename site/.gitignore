@@ -1,0 +1,4 @@
+node_modules/
+dist/
+public/screens/
+src/generated.json

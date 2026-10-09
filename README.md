@@ -3,6 +3,30 @@
 Вечеринка-игра для компании от 2 до 8 человек. Большой экран (ТВ или ноутбук) показывает игру,
 игроки подключаются телефонами через браузер — без установки приложений.
 
+**Скачать:** [macOS (Apple Silicon)](https://github.com/swchck/which-of-us/releases/latest/download/kto-iz-nas-macos-arm64.dmg) ·
+[Windows](https://github.com/swchck/which-of-us/releases/latest/download/kto-iz-nas-windows-x64-setup.exe) ·
+[страница игры](https://swchck.github.io/which-of-us/)
+
+![Вопрос «Кто из нас?» на экране ТВ](docs/screenshots/tv-question.webp)
+
+<table>
+  <tr>
+    <td><img src="docs/screenshots/tv-lobby.webp" alt="Лобби: QR-код и игроки" /></td>
+    <td><img src="docs/screenshots/tv-reveal.webp" alt="Ответ комнаты и титул" /></td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/tv-active.webp" alt="Активная игра «Сумо на льдине»" /></td>
+    <td><img src="docs/screenshots/tv-final.webp" alt="Итоги и награды" /></td>
+  </tr>
+</table>
+
+<p>
+  <img src="docs/screenshots/phone-join.webp" alt="Вход с телефона" width="23%" />
+  <img src="docs/screenshots/phone-lobby.webp" alt="Лобби на телефоне" width="23%" />
+  <img src="docs/screenshots/phone-vote.webp" alt="Голосование на телефоне" width="23%" />
+  <img src="docs/screenshots/phone-draw.webp" alt="Рисование на телефоне" width="23%" />
+</p>
+
 Партия идёт раундами, как в «Это ты!»:
 
 - **Обычный раунд** — серия вопросов «Кто из нас…?» про всю компанию (кто первым потеряется

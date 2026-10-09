@@ -76,6 +76,11 @@ jobs:
           path: installers
           merge-multiple: true
 
+      # the site and README link releases/latest/download/<name>, so the names carry no version
+      - run: |
+          mv installers/*.dmg installers/kto-iz-nas-macos-arm64.dmg
+          mv installers/*.exe installers/kto-iz-nas-windows-x64-setup.exe
+
       # a draft, so the notes and the unsigned-app instructions get a look before players see it
       - run: gh release create "$GITHUB_REF_NAME" installers/* --draft --title "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY"
         env:
