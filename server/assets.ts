@@ -1,6 +1,6 @@
 import express, { type RequestHandler } from 'express';
 import { readdirSync } from 'node:fs';
-import { extname, join } from 'node:path';
+import { extname } from 'node:path';
 
 const ENCODINGS = [
   { name: 'br', ext: '.br' },
@@ -24,7 +24,8 @@ export function assetsHandler(dir: string): RequestHandler {
     if (!encoding) return statics(req, res, next);
     // set before sendFile: send only derives Content-Type when none is present, and it would say .br
     res.type(extname(name)).setHeader('Content-Encoding', encoding.name);
-    res.sendFile(join(dir, name + encoding.ext), { maxAge: '1y', immutable: true }, (err) => {
+    // with `root`, send checks only the relative part for dotfiles; an absolute path under ~/.something 404'd
+    res.sendFile(name + encoding.ext, { root: dir, maxAge: '1y', immutable: true }, (err) => {
       if (err) next(err);
     });
   };
