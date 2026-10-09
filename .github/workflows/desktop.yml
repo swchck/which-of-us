@@ -76,12 +76,16 @@ jobs:
           path: installers
           merge-multiple: true
 
-      # the site and README link releases/latest/download/<name>, so the names carry no version
+      # the site and README link releases/latest/download/<name>, so the names carry no version;
+      # each artifact keeps its bundle/ subfolder (dmg/, nsis/), hence find rather than a top-level glob
       - run: |
-          mv installers/*.dmg installers/kto-iz-nas-macos-arm64.dmg
-          mv installers/*.exe installers/kto-iz-nas-windows-x64-setup.exe
+          mkdir release
+          find installers -name '*.dmg' -exec mv {} release/kto-iz-nas-macos-arm64.dmg \;
+          find installers -name '*.exe' -exec mv {} release/kto-iz-nas-windows-x64-setup.exe \;
+          ls -la release
+          test -f release/kto-iz-nas-macos-arm64.dmg && test -f release/kto-iz-nas-windows-x64-setup.exe
 
       # published at once: a draft is invisible to releases/latest/download, so the download links would 404
-      - run: gh release create "$GITHUB_REF_NAME" installers/* --title "$GITHUB_REF_NAME" --generate-notes --repo "$GITHUB_REPOSITORY"
+      - run: gh release create "$GITHUB_REF_NAME" release/* --title "$GITHUB_REF_NAME" --generate-notes --repo "$GITHUB_REPOSITORY"
         env:
           GH_TOKEN: ${{ github.token }}
