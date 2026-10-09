@@ -1270,6 +1270,14 @@ export type Personal =
   | { kind: 'tilt'; stars: number; status?: 'it' | 'free' | 'out' | 'on' | 'paint' }
   | { kind: 'tug'; count: number; team: 0 | 1 };
 
+export type RelayState = 'off' | 'connecting' | 'online' | 'error';
+
+export interface RelayView {
+  state: RelayState;
+  /** Why the last attempt failed: no answer at all, or the relay turned this computer away. */
+  error?: 'unreachable' | 'rejected';
+}
+
 export interface RoomView {
   code: string;
   phaseId: number;
@@ -1284,6 +1292,8 @@ export interface RoomView {
   warming?: boolean;
   settings: Settings;
   httpsAvailable: boolean;
+  /** The internet relay's connection, or null where this server has no relay to offer. */
+  relay: RelayView | null;
   /** Rough game length in minutes for 1, 2 and 3 episodes with the current settings. */
   minutes: number[];
   /** Location of the current episode, for the backdrop and music. */
@@ -1385,6 +1395,8 @@ export interface Settings {
   music: boolean;
   /** Point phones at the HTTPS listener, which tilt sensors require. */
   secure: boolean;
+  /** Phones join through the internet relay instead of the local network; wins over `secure`. */
+  relay: boolean;
   /** Never empty for locations and packs; an empty games list leaves only the votes. */
   games: GameId[];
   locations: LocationId[];
@@ -1392,7 +1404,7 @@ export interface Settings {
 }
 
 /** RoomView fields only the TV uses; phones get the rest, which keeps every phone update smaller. */
-export type HostOnly = 'joinUrl' | 'httpsAvailable' | 'minutes' | 'lan' | 'settings' | 'custom';
+export type HostOnly = 'joinUrl' | 'httpsAvailable' | 'relay' | 'minutes' | 'lan' | 'settings' | 'custom';
 
 export interface PlayerView extends Omit<RoomView, HostOnly> {
   settings: Pick<Settings, 'selfVote'>;

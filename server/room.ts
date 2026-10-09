@@ -37,6 +37,7 @@ import {
   type PlayerView,
   type PublicPlayer,
   type RoomView,
+  type RelayView,
   type ServerMsg,
   type Settings,
   type TtsEngine,
@@ -63,10 +64,12 @@ export interface RoomOptions {
   rng: Rng;
   /** Bot think-time multiplier; tests pass a small number. */
   botPace: number;
-  /** Phone URL for the room; `secure` selects the HTTPS listener. */
-  joinUrl: (code: string, secure: boolean) => string;
+  /** Phone URL for the room; `secure` selects the HTTPS listener and `relay` the internet relay. */
+  joinUrl: (code: string, via: { secure: boolean; relay: boolean }) => string;
   /** Whether an HTTPS listener is running, so the secure setting can be offered at all. */
   httpsAvailable: boolean;
+  /** State of the internet relay; absent where the server has none, so the setting is not offered. */
+  relay?: () => RelayView;
   /** What came up in earlier rooms and evenings, so a new room starts with the stalest content. */
   fresh?: Freshness;
   /** Phones join over the internet rather than the local network. */
@@ -131,6 +134,7 @@ export class Room implements GameHost {
     narrator: true,
     music: true,
     secure: false,
+    relay: false,
     games: [...GAMES],
     locations: [...LOCATIONS],
     packs: ['party'],
@@ -237,6 +241,11 @@ export class Room implements GameHost {
     return face;
   }
 
+  /** Whether phones are sent through the relay: asked for, and this server has one. */
+  get viaRelay(): boolean {
+    return this.settings.relay && this.opts.relay !== undefined;
+  }
+
   changed(): void {
     this.lastActivity = Date.now();
     this.opts.onChange?.();
@@ -286,8 +295,9 @@ export class Room implements GameHost {
       players: this.publicPlayers(),
       say: this.game?.say,
       serverNow: Date.now(),
-      joinUrl: this.opts.joinUrl(this.code, this.settings.secure),
+      joinUrl: this.opts.joinUrl(this.code, { secure: this.settings.secure, relay: this.viaRelay }),
       httpsAvailable: this.opts.httpsAvailable,
+      relay: this.opts.relay?.() ?? null,
       minutes: this.estimate(),
       paused: this.game?.paused ?? false,
       warming: this.warming || undefined,
@@ -296,7 +306,7 @@ export class Room implements GameHost {
       scene: this.game?.scene,
       audience: [...this.crowd.values()].filter((s) => s.ws).length,
       customCount: this.decks.custom.length,
-      lan: !this.opts.online,
+      lan: !this.opts.online && !this.viaRelay,
     };
   }
 
@@ -369,7 +379,7 @@ export class Room implements GameHost {
   }
 
   private flush(): void {
-    const { joinUrl, httpsAvailable, minutes, lan, settings, ...common } = this.view();
+    const { joinUrl, httpsAvailable, relay, minutes, lan, settings, ...common } = this.view();
     if (common.phaseId !== this.journaledPhase) {
       this.journaledPhase = common.phaseId;
       this.note(`phase ${common.phaseId} ${common.phase.kind}${common.say ? `: ${common.say}` : ''}`);
@@ -381,7 +391,7 @@ export class Room implements GameHost {
     const shared = JSON.stringify(common).slice(0, -1);
     const wrap = (t: 'room' | 'me', extra: object) => `{"t":"${t}","view":${shared},${JSON.stringify(extra).slice(1)}}`;
     if (isOpen(this.hostSocket)) {
-      sendRaw(this.hostSocket, wrap('room', { joinUrl, httpsAvailable, minutes, lan, settings, custom: this.decks.custom }));
+      sendRaw(this.hostSocket, wrap('room', { joinUrl, httpsAvailable, relay, minutes, lan, settings, custom: this.decks.custom }));
       this.catchUpInk(this.hostSocket, common.phaseId);
     }
     const phoneSettings = { selfVote: settings.selfVote };
@@ -476,7 +486,8 @@ export class Room implements GameHost {
     }, HOST_GONE_MS);
   }
 
-  join(ws: WebSocket, rawName: unknown, rawColor: unknown): ServerMsg | null {
+  /** `remote` marks a phone that came in over the internet, wherever the room itself is hosted. */
+  join(ws: WebSocket, rawName: unknown, rawColor: unknown, remote = false): ServerMsg | null {
     const name = cleanName(rawName);
     if (!name) return error('bad_name', 'Введите имя');
     const lower = name.toLowerCase();
@@ -484,7 +495,7 @@ export class Room implements GameHost {
     // a phone that lost its token (private tab, cleared storage) takes its own seat back by name: a party
     // trusts names, and the alternative is watching your avatar sit offline for the rest of the game
     // only on a LAN: on the internet a stranger could wait for someone to blip and take their seat and crown
-    const seat = this.opts.online ? undefined : this.list.find((p) => !p.bot && !p.connected && p.name.toLowerCase() === lower);
+    const seat = this.opts.online || remote ? undefined : this.list.find((p) => !p.bot && !p.connected && p.name.toLowerCase() === lower);
     if (seat) {
       seat.token = newId(12);
       return this.resume(ws, seat.token);
@@ -718,6 +729,8 @@ export class Room implements GameHost {
   restore(snapshot: RoomSnapshot, assets: Map<string, Asset>): void {
     this.hostToken = snapshot.hostToken;
     Object.assign(this.settings, snapshot.settings);
+    // the internet is opt-in per sitting: an app restart puts phones back on the local network
+    this.settings.relay = false;
     // rooms saved before the 5..15 questions and 1..3 mini-games rule could hold shorter rounds
     this.settings.questions = Math.min(QUESTIONS_MAX, Math.max(QUESTIONS_MIN, this.settings.questions));
     this.settings.minis = Math.min(MINIS_MAX, Math.max(MINIS_MIN, this.settings.minis));
@@ -948,6 +961,7 @@ export class Room implements GameHost {
     if (typeof s.narrator === 'boolean') this.settings.narrator = s.narrator;
     if (typeof s.music === 'boolean') this.settings.music = s.music;
     if (typeof s.secure === 'boolean' && this.opts.httpsAvailable) this.settings.secure = s.secure;
+    if (typeof s.relay === 'boolean' && this.opts.relay) this.settings.relay = s.relay;
     if (this.inLobby) {
       const games = pickFrom(s.games, GAMES);
       if (games) this.settings.games = games;

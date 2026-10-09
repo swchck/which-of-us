@@ -50,6 +50,8 @@ async function main(): Promise<void> {
     stateDir: join(dataDir, 'rooms'),
     reportsDir: join(dataDir, 'reports'),
     publicUrl: publicUrl || undefined,
+    // the desktop build bakes the relay's address in; without one the TV does not offer it
+    relay: process.env.KTO_RELAY_URL ? { url: process.env.KTO_RELAY_URL, identityFile: join(dataDir, 'relay.json') } : undefined,
     collectLogs: logs ? (details) => collectLogs(dataDir, { build: process.env.KTO_BUILD ?? 'dev', ...details }) : undefined,
     // the desktop app passes the checkout it was built from; a dev run finds tts/ next to package.json
     tts: Tts.open({

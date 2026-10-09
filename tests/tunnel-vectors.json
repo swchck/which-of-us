@@ -1,0 +1,113 @@
+[
+  {
+    "name": "request head",
+    "type": 1,
+    "channel": 1,
+    "head": {
+      "method": "POST",
+      "path": "/api/room/1234/image?kind=selfie",
+      "headers": [
+        [
+          "content-type",
+          "image/jpeg"
+        ],
+        [
+          "x-token",
+          "abc"
+        ]
+      ],
+      "ip": "203.0.113.7"
+    },
+    "frame": "01000000017b226d6574686f64223a22504f5354222c2270617468223a222f6170692f726f6f6d2f313233342f696d6167653f6b696e643d73656c666965222c2268656164657273223a5b5b22636f6e74656e742d74797065222c22696d6167652f6a706567225d2c5b22782d746f6b656e222c22616263225d5d2c226970223a223230332e302e3131332e37227d"
+  },
+  {
+    "name": "request body chunk",
+    "type": 2,
+    "channel": 1,
+    "bytes": "ffd8ffe0",
+    "frame": "0200000001ffd8ffe0"
+  },
+  {
+    "name": "request end",
+    "type": 3,
+    "channel": 1,
+    "frame": "0300000001"
+  },
+  {
+    "name": "response head",
+    "type": 4,
+    "channel": 4294967295,
+    "head": {
+      "status": 200,
+      "headers": [
+        [
+          "content-type",
+          "text/html; charset=utf-8"
+        ],
+        [
+          "cache-control",
+          "no-cache"
+        ]
+      ]
+    },
+    "frame": "04ffffffff7b22737461747573223a3230302c2268656164657273223a5b5b22636f6e74656e742d74797065222c22746578742f68746d6c3b20636861727365743d7574662d38225d2c5b2263616368652d636f6e74726f6c222c226e6f2d6361636865225d5d7d"
+  },
+  {
+    "name": "response body chunk",
+    "type": 5,
+    "channel": 4294967295,
+    "bytes": "3c21",
+    "frame": "05ffffffff3c21"
+  },
+  {
+    "name": "response end",
+    "type": 6,
+    "channel": 4294967295,
+    "frame": "06ffffffff"
+  },
+  {
+    "name": "websocket open",
+    "type": 7,
+    "channel": 3735928559,
+    "head": {
+      "path": "/ws",
+      "headers": [
+        [
+          "user-agent",
+          "Комната"
+        ]
+      ],
+      "ip": "2001:db8::1"
+    },
+    "frame": "07deadbeef7b2270617468223a222f7773222c2268656164657273223a5b5b22757365722d6167656e74222c22d09ad0bed0bcd0bdd0b0d182d0b0225d5d2c226970223a22323030313a6462383a3a31227d"
+  },
+  {
+    "name": "websocket text",
+    "type": 8,
+    "channel": 3735928559,
+    "text": "{\"t\":\"ping\"}",
+    "frame": "08deadbeef007b2274223a2270696e67227d"
+  },
+  {
+    "name": "websocket binary",
+    "type": 8,
+    "channel": 3735928559,
+    "bytes": "0001ff",
+    "frame": "08deadbeef010001ff"
+  },
+  {
+    "name": "websocket close",
+    "type": 9,
+    "channel": 7,
+    "code": 4000,
+    "reason": "replaced",
+    "frame": "09000000070fa07265706c61636564"
+  },
+  {
+    "name": "reset",
+    "type": 10,
+    "channel": 7,
+    "reason": "нет ответа",
+    "frame": "0a00000007d0bdd0b5d18220d0bed182d0b2d0b5d182d0b0"
+  }
+]

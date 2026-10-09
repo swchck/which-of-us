@@ -37,6 +37,16 @@ const voiceOptions = computed(() => [
 const choices = computed(() => (voiceOptions.value.length > 1 ? voiceOptions.value : []));
 const chosen = (o: { value: string }) => o.value === audio.voiceChoice.value || (o.value === SYSTEM_VOICE && audio.voiceChoice.value.startsWith(SYSTEM_VOICE));
 
+const relayOn = computed(() => !!view.value?.relay && !!view.value.settings.relay);
+const relayNote = computed(() => {
+  const relay = view.value?.relay;
+  if (!relay || !relayOn.value) return 'Телефоны подключатся с любого интернета, не только из этой Wi‑Fi, и датчики наклона заработают без предупреждений.';
+  if (relay.state === 'online') return 'Готово: QR в лобби ведёт через интернет.';
+  if (relay.state === 'error' && relay.error === 'rejected') return 'Сервер не принял подключение. Выключите, чтобы играть по Wi‑Fi.';
+  if (relay.state === 'error') return 'Нет связи с сервером — проверьте интернет. Пробую снова…';
+  return 'Подключаюсь к серверу…';
+});
+
 const card = ref<HTMLElement>();
 
 // capture on window: the host's N/F/M/Space shortcuts must stay quiet while the menu is open
@@ -110,9 +120,17 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey, true));
             <p class="note">Голос и громкость хранятся на этом компьютере и не зависят от игры.</p>
           </section>
 
-          <section v-if="view?.httpsAvailable">
+          <section v-if="view?.httpsAvailable || view?.relay">
             <h3><Emoji char="📱" /> Подключение телефонов</h3>
             <SwitchRow
+              v-if="view.relay"
+              title="Через интернет"
+              :note="relayNote"
+              :on="view.settings.relay"
+              @flip="send({ t: 'host.settings', settings: { relay: !view.settings.relay } })"
+            />
+            <SwitchRow
+              v-if="view.httpsAvailable && !relayOn"
               title="Датчики наклона (HTTPS)"
               :note="
                 view.settings.secure

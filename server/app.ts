@@ -12,10 +12,11 @@ import { FreshnessLog } from './fresh.js';
 import { saveReport } from './report.js';
 import { logLine } from './log.js';
 import { RoomStore } from './persist.js';
+import { Relay, RELAY_HEADER } from './relay.js';
 import { Room, send } from './room.js';
 import type { Tls } from './tls.js';
 import type { Tts, TtsAudio } from './tts.js';
-import type { Rng } from './util.js';
+import { newId, type Rng } from './util.js';
 
 export interface AppOptions {
   port: number;
@@ -37,6 +38,11 @@ export interface AppOptions {
   publicUrl?: string;
   /** Neural narrator voices; the TV falls back to its own speech synthesis without them. */
   tts?: Tts;
+  /**
+   * Internet relay phones can join through when the host asks for it, and the file keeping this
+   * computer's code there; no relay without it, and never on a public server.
+   */
+  relay?: { url: string; identityFile: string };
   /** Packs the logs into an archive for the developer and resolves to its path; no log collecting without it. */
   collectLogs?: (details: object) => Promise<string>;
 }
@@ -61,9 +67,12 @@ const LOG_LINE_MAX = 2000;
 const MSG_PER_SEC = 60;
 const MSG_BURST = 120;
 
-/** The TV page in the desktop app shares the computer with the server; a phone has no business with its logs. */
-function fromThisComputer(req: express.Request): boolean {
-  return /^(::1|127\.|::ffff:127\.)/.test(req.socket.remoteAddress ?? '');
+/**
+ * The TV page in the desktop app shares the computer with the server; a phone has no business with its logs.
+ * Phones on the internet relay reach us from 127.0.0.1 too, so they are told apart by the relay's nonce.
+ */
+function fromThisComputer(req: IncomingMessage, relayNonce: string): boolean {
+  return /^(::1|127\.|::ffff:127\.)/.test(req.socket.remoteAddress ?? '') && req.headers[RELAY_HEADER] !== relayNonce;
 }
 
 // every room flush builds the join URL, and networkInterfaces() is a syscall that allocates
@@ -117,6 +126,7 @@ class RoomManager {
     stateDir?: string,
     private readonly reportsDir?: string,
     private readonly tts?: Tts,
+    private readonly relay?: Relay,
   ) {
     this.fresh = new FreshnessLog(stateDir && join(stateDir, 'seen.json'));
     for (const { snapshot, assets } of store?.load(ROOM_IDLE_MS) ?? []) {
@@ -140,16 +150,21 @@ class RoomManager {
   private open(code: string): Room {
     const https = this.httpsAvailable;
     const reports = this.reportsDir;
+    const relay = this.relay;
     const room = new Room(code, {
       durations: this.durations,
       rng: this.rng,
       botPace: this.botPace,
-      joinUrl: (c, secure) => `${this.joinBase(secure && this.httpsAvailable())}/p?c=${c}`,
+      joinUrl: (c, via) => (via.relay && relay ? `${relay.joinBase}?c=${c}` : `${this.joinBase(via.secure && this.httpsAvailable())}/p?c=${c}`),
       // restored rooms open before the HTTPS listener exists, so read it live rather than once
       get httpsAvailable() {
         return https();
       },
-      onChange: () => this.scheduleSave(),
+      relay: relay ? () => relay.view() : undefined,
+      onChange: () => {
+        this.scheduleSave();
+        this.updateRelay();
+      },
       report: reports ? (c, data) => saveReport(reports, c, data) : undefined,
       tts: this.tts,
       online: this.online,
@@ -175,6 +190,17 @@ class RoomManager {
     }
   }
 
+  /** Keeps the relay connected exactly while some room sends its phones through it. */
+  updateRelay(): void {
+    if (this.closed) return;
+    this.relay?.setWanted([...this.rooms.values()].some((r) => r.viaRelay));
+  }
+
+  /** The TVs of relayed rooms show the connection state, so they need a fresh view when it moves. */
+  relayChanged(): void {
+    for (const room of this.rooms.values()) if (room.viaRelay) room.changed();
+  }
+
   get size(): number {
     return this.rooms.size;
   }
@@ -193,6 +219,7 @@ class RoomManager {
         this.scheduleSave();
       }
     }
+    this.updateRelay();
   }
 
   disposeAll(): void {
@@ -223,6 +250,17 @@ export async function startApp(opts: AppOptions): Promise<RunningApp> {
   let port = opts.port;
   let secure: HttpsServer | null = null;
   let httpsPort = opts.https?.port ?? 0;
+  const relayNonce = newId(18);
+  const relay =
+    opts.relay && !opts.publicUrl
+      ? new Relay({
+          url: opts.relay.url.replace(/\/+$/, ''),
+          identityFile: opts.relay.identityFile,
+          port: () => port,
+          nonce: relayNonce,
+          onStatus: () => rooms.relayChanged(),
+        })
+      : undefined;
   const rooms = new RoomManager(
     opts.durations ?? DURATIONS,
     opts.rng ?? Math.random,
@@ -236,10 +274,11 @@ export async function startApp(opts: AppOptions): Promise<RunningApp> {
     // a server on the internet has no TV screen of its own to photograph, and its disk is not the host's
     opts.publicUrl ? undefined : opts.reportsDir,
     opts.publicUrl ? undefined : opts.tts,
+    relay,
   );
 
   app.get('/api/info', (req, res) => {
-    res.json({ lan: `http://${lanAddress()}:${port}`, logs: !!opts.collectLogs && !opts.publicUrl && fromThisComputer(req) });
+    res.json({ lan: `http://${lanAddress()}:${port}`, logs: !!opts.collectLogs && !opts.publicUrl && fromThisComputer(req, relayNonce) });
   });
 
   app.get('/a/:code/:id', (req, res) => {
@@ -327,7 +366,7 @@ export async function startApp(opts: AppOptions): Promise<RunningApp> {
   const collect = opts.publicUrl ? undefined : opts.collectLogs;
   app.post('/api/log', express.json({ limit: LOG_POST_MAX_BYTES }), (req, res) => {
     const lines = (req.body as { lines?: unknown } | undefined)?.lines;
-    if (!collect || !fromThisComputer(req) || !Array.isArray(lines)) {
+    if (!collect || !fromThisComputer(req, relayNonce) || !Array.isArray(lines)) {
       res.status(403).end();
       return;
     }
@@ -335,7 +374,7 @@ export async function startApp(opts: AppOptions): Promise<RunningApp> {
     res.status(204).end();
   });
   app.post('/api/logs', express.json({ limit: LOG_POST_MAX_BYTES }), (req, res) => {
-    if (!collect || !fromThisComputer(req)) {
+    if (!collect || !fromThisComputer(req, relayNonce)) {
       res.status(403).end();
       return;
     }
@@ -377,7 +416,9 @@ export async function startApp(opts: AppOptions): Promise<RunningApp> {
     // behind the public proxy every socket comes from the proxy, so trust its header there only;
     // the proxy appends the real peer last, while earlier entries are whatever the client sent
     const forwarded = opts.publicUrl ? String(req.headers['x-forwarded-for'] ?? '').split(',').at(-1)?.trim() : '';
-    const ip = forwarded || req.socket.remoteAddress || '';
+    // our own relay client sets the header to exactly the phone's address, nothing the phone sent
+    const viaRelay = req.headers[RELAY_HEADER] === relayNonce;
+    const ip = (viaRelay ? String(req.headers['x-forwarded-for'] ?? '') : forwarded) || req.socket.remoteAddress || '';
     alive.set(ws, true);
     ws.on('pong', () => alive.set(ws, true));
     // ws emits 'error' for oversized or malformed frames and closes the socket itself; unhandled, it kills the process
@@ -415,6 +456,8 @@ export async function startApp(opts: AppOptions): Promise<RunningApp> {
       }
 
       if (role === null) {
+        // the relay is a way in for phones; a TV across the internet would be a stranger running rooms on this computer
+        if (viaRelay && (msg.t === 'host.create' || msg.t === 'host.resume')) return;
         if (msg.t === 'host.create') {
           // online, a script could otherwise fill every slot; at home one TV makes one room
           if (opts.publicUrl && throttled(ip, true)) {
@@ -453,7 +496,7 @@ export async function startApp(opts: AppOptions): Promise<RunningApp> {
             send(ws, { t: 'error', code: 'no_room', message: 'Комната не найдена — проверьте код' });
             return;
           }
-          const err = msg.t === 'join' ? found.join(ws, msg.name, msg.color) : found.resume(ws, msg.token);
+          const err = msg.t === 'join' ? found.join(ws, msg.name, msg.color, viaRelay) : found.resume(ws, msg.token);
           if (err) {
             send(ws, err);
             return;
@@ -503,6 +546,8 @@ export async function startApp(opts: AppOptions): Promise<RunningApp> {
   await new Promise<void>((resolve) => server.listen(opts.port, '0.0.0.0', resolve));
   const address = server.address();
   if (address && typeof address === 'object') port = address.port;
+  // rooms restored with the relay on reconnect it, and only now is there a port to replay phones against
+  rooms.updateRelay();
 
   if (opts.https) {
     // tilt sensors are optional, so a busy port or a cert failure must not stop the game
@@ -529,6 +574,7 @@ export async function startApp(opts: AppOptions): Promise<RunningApp> {
     httpsPort: secure ? httpsPort : null,
     close: async () => {
       tts?.close();
+      relay?.close();
       clearInterval(heartbeat);
       rooms.disposeAll();
       for (const ws of wss.clients) ws.terminate();

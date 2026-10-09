@@ -21,7 +21,14 @@ watch(
 );
 
 // typing the address by hand drops into plain http unless the scheme is spelled out
-const shortUrl = computed(() => view.value?.joinUrl.replace(/^http:\/\//, '').replace(/\?.*$/, '') ?? '');
+// the relay sits on .dev, which browsers only ever open over https, so there the scheme can go too
+const relayed = computed(() => !!view.value?.relay && !!view.value.settings.relay);
+const shortUrl = computed(() => view.value?.joinUrl.replace(relayed.value ? /^https?:\/\// : /^http:\/\//, '').replace(/\?.*$/, '') ?? '');
+const relayTrouble = computed(() => {
+  const relay = view.value?.relay;
+  if (!relayed.value || !relay || relay.state === 'online') return '';
+  return relay.state === 'error' ? 'Нет связи с сервером для игры через интернет — проверьте интернет или выключите это в настройках' : 'Подключаюсь к серверу для игры через интернет…';
+});
 const online = computed(() => players.value.filter((p) => p.connected).length);
 const canStart = computed(() => online.value >= MIN_PLAYERS);
 // the TV is often driven from a laptop across the room, so Enter starts without hunting for the button
@@ -59,6 +66,7 @@ const setup = ref(false);
         </div>
       </div>
       <p v-if="view.lan" class="wifi">Телефоны должны быть в той же Wi‑Fi сети, что и этот компьютер</p>
+      <p v-else-if="relayTrouble" class="wifi">{{ relayTrouble }}</p>
     </div>
 
     <div class="right">

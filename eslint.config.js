@@ -4,7 +4,7 @@ import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
-  { ignores: ['dist/**', 'dist-server/**', 'node_modules/**', 'build/**', 'desktop/**', 'tts/**'] },
+  { ignores: ['dist/**', 'dist-server/**', 'node_modules/**', 'build/**', 'desktop/**', 'tts/**', 'relay/build/**', 'relay/target/**', 'relay/.wrangler/**'] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   ...vue.configs['flat/recommended'],

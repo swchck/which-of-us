@@ -18,6 +18,7 @@ const PREFERRED_PORT: u16 = 3000;
 const PORT_ATTEMPTS: u16 = 20;
 /// Line the server prints once it accepts connections, followed by the port.
 const READY_MARKER: &str = "KTO_READY ";
+const DEFAULT_RELAY_URL: &str = "https://kto-relay.swchck.workers.dev";
 /// A server that keeps dying is broken, not unlucky; stop restarting it after this many tries.
 const MAX_RESTARTS: u32 = 5;
 const RESTART_DELAY: Duration = Duration::from_secs(1);
@@ -87,6 +88,12 @@ fn start_server(app: &AppHandle, port: u16, restarts: u32) -> Result<(), Box<dyn
         if tts.join("protocol.py").exists() {
             command = command.env("KTO_TTS_DIR", tts.to_string_lossy().to_string());
         }
+    }
+    // baked in at build time (see docs/RELAY.md), so every copy of the app knows the same relay;
+    // an empty KTO_RELAY_URL builds an app without the internet option
+    let relay = option_env!("KTO_RELAY_URL").unwrap_or(DEFAULT_RELAY_URL);
+    if !relay.is_empty() {
+        command = command.env("KTO_RELAY_URL", relay);
     }
     let (mut events, child) = command
         .env("PORT", port.to_string())
