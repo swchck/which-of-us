@@ -27,7 +27,10 @@ function bakeable(root: SVGSVGElement): SVGGraphicsElement[] {
     for (const el of Array.from(parent.children)) {
       if (el.tagName === 'defs' || el.hasAttribute(MARK)) continue;
       if (!hasAnimation(el)) {
-        if ((hasFilter(el) || (moving && big(el))) && portable(el) && el instanceof SVGGraphicsElement) found.push(el);
+        if (!(hasFilter(el) || (moving && big(el))) || !(el instanceof SVGGraphicsElement)) continue;
+        // a group holding text or an image cannot bake whole, but its filtered shapes can one by one
+        if (portable(el)) found.push(el);
+        else walk(el, moving);
       } else {
         // a still part inside a swaying group bakes too: its bitmap stays a child and sways along
         walk(el, moving || animated(el));
@@ -167,7 +170,9 @@ async function render(svg: string, w: number, h: number): Promise<Blob> {
     const canvas = document.createElement('canvas');
     canvas.width = w;
     canvas.height = h;
-    canvas.getContext('2d')!.drawImage(img, 0, 0, w, h);
+    // willReadFrequently keeps the canvas in CPU memory, so WebKit runs the cel filter in software: on the
+    // GPU, bakes at fullscreen Retina size hung it until WindowServer died and macOS rebooted
+    canvas.getContext('2d', { willReadFrequently: true })!.drawImage(img, 0, 0, w, h);
     const png = (await encode(canvas)) ?? (await new Promise<Blob | null>((done) => canvas.toBlob(done)));
     if (!png) throw new Error('canvas gave no bitmap');
     return png;
@@ -240,7 +245,7 @@ export function bakeScene(svg: SVGSVGElement, isCurrent: () => boolean): { resto
     const urls: (string | null)[] = [];
     for (const { el, box, scale } of jobs) {
       if (!isCurrent()) break;
-      // a shape that will not rasterize keeps its live filter: slower, never wrong
+      // a shape that will not rasterize stays live, flat: scenes.css never lets the page run its filter
       urls.push(await rasterize(el, box, scale).catch(() => null));
       await new Promise((next) => requestAnimationFrame(next));
     }

@@ -20,6 +20,12 @@
   visibility: hidden;
 }
 
+/* cel shading reaches the screen only through the baked bitmaps (see bake.ts for the GPU hang it caused);
+   live, it re-ran on every frame of a moving part, so moving parts and unbaked shapes go flat instead */
+.scenery .art [filter] {
+  filter: none;
+}
+
 /* stage light, vignette and halftone over every scene, on a layer of its own: sharing the scenery's,
    WebKit re-rasterized the masked halftone under every moving balloon, a third of the idle lobby's CPU */
 .scenery .light {

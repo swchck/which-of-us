@@ -31,7 +31,7 @@
   "bundle": {
     "active": true,
     "targets": "all",
-    "category": "Game",
+    "category": "Entertainment",
     "shortDescription": "Вечеринка-игра для ТВ и телефонов",
     "longDescription": "Большой экран показывает игру, гости играют с телефонов через браузер в той же Wi-Fi сети.",
     "externalBin": [
