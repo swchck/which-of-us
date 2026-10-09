@@ -1,7 +1,7 @@
 /**
  * Sends what the TV page notices about itself (script errors, a voice falling back to the system
  * one) to the server's log file, so an archive from the desktop app tells the whole story. Only the
- * desktop app keeps that file; elsewhere the server refuses and the page stops trying.
+ * desktop app keeps that file; lines wait until the server says whether it does, and are dropped if not.
  */
 
 const FLUSH_MS = 2000;
@@ -9,14 +9,22 @@ const QUEUE_MAX = 200;
 
 let queue: string[] = [];
 let timer: ReturnType<typeof setTimeout> | undefined;
-let refused = false;
+/** Unknown until the server's /api/info answers; true only where it keeps a log. */
+let kept: boolean | undefined;
 
 /** Notes a line for the log; sent in batches, dropped when the server keeps no log. */
 export function tvLog(text: string): void {
-  if (refused) return;
+  if (kept === false) return;
   queue.push(text);
   if (queue.length > QUEUE_MAX) queue = queue.slice(-QUEUE_MAX);
-  timer ??= setTimeout(flush, FLUSH_MS);
+  if (kept) timer ??= setTimeout(flush, FLUSH_MS);
+}
+
+/** Tells the logger whether the server keeps a log, sending what waited or dropping it. */
+export function keepLog(on: boolean): void {
+  kept = on;
+  if (!on) queue = [];
+  else if (queue.length) timer ??= setTimeout(flush, FLUSH_MS);
 }
 
 function flush(): void {
@@ -24,11 +32,7 @@ function flush(): void {
   const lines = queue;
   queue = [];
   if (!lines.length) return;
-  fetch('/api/log', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ lines }) })
-    .then((res) => {
-      if (res.status === 403) refused = true;
-    })
-    .catch(() => undefined);
+  fetch('/api/log', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ lines }) }).catch(() => undefined);
 }
 
 /** Starts logging uncaught errors, once per page. */

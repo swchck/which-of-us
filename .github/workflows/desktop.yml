@@ -81,7 +81,7 @@ jobs:
           mv installers/*.dmg installers/kto-iz-nas-macos-arm64.dmg
           mv installers/*.exe installers/kto-iz-nas-windows-x64-setup.exe
 
-      # a draft, so the notes and the unsigned-app instructions get a look before players see it
-      - run: gh release create "$GITHUB_REF_NAME" installers/* --draft --title "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY"
+      # published at once: a draft is invisible to releases/latest/download, so the download links would 404
+      - run: gh release create "$GITHUB_REF_NAME" installers/* --title "$GITHUB_REF_NAME" --generate-notes --repo "$GITHUB_REPOSITORY"
         env:
           GH_TOKEN: ${{ github.token }}

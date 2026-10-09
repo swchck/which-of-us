@@ -348,7 +348,8 @@ export async function startApp(opts: AppOptions): Promise<RunningApp> {
       const hit = tts.cached(engine, voice, text);
       if (hit) send(hit);
       else {
-        res.status(404).end();
+        // a miss is an expected answer, not an error: 204 keeps the browser console quiet
+        res.status(204).end();
         tts.file(engine, voice, text, { priority: 'idle' }).catch(() => {});
       }
       return;

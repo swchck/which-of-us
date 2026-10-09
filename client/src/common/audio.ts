@@ -137,6 +137,8 @@ class AudioEngine {
   readonly voices = shallowRef<string[]>([]);
   /** Neural engines the server has installed; empty when it runs without them. */
   readonly engines = shallowRef<TtsEngine[]>([]);
+  /** Engines that can render a line now; the rest only play what was rendered ahead of time. */
+  private live = new Set<TtsEngine>();
   /** The picked narrator: `system:<voice name>` or `<engine>:<voice id>`. */
   readonly voiceChoice = ref('');
   private paused = false;
@@ -273,6 +275,7 @@ class AudioEngine {
       const res = await fetch('/api/tts');
       const body = (await res.json()) as { engines: { id: TtsEngine; installed: boolean; bundled: boolean }[] };
       this.engines.value = body.engines.filter((e) => e.installed || e.bundled).map((e) => e.id);
+      this.live = new Set(body.engines.filter((e) => e.installed).map((e) => e.id));
       this.log(`tts engines: ${JSON.stringify(body.engines)}; opus in webm: «${new Audio().canPlayType('audio/webm; codecs=opus')}»`);
       // the app ships the default voice with every line prebuilt; a TV that saved a voice since removed
       // from the catalog gets it back too, rather than the browser's own voice
@@ -380,23 +383,33 @@ class AudioEngine {
     const url = (s: string, cached = false) => `/tts/${engine}/${encodeURIComponent(voice)}?t=${encodeURIComponent(s)}${cached ? '&cached=1' : ''}`;
     const sentences = speechSentences(text);
     const pieces = sentences.map((s) => speechPieces(s, this.names));
+    const live = this.live.has(engine);
     // the text around a name is prebuilt, so unless the whole sentence is cached the voice renders only
     // the name and says it between cached pieces, a little like a station announcement
     void Promise.all(
-      sentences.map((s, i) =>
-        pieces[i]!.length < 2
+      sentences.map((s, i): Promise<string[] | null> =>
+        live && pieces[i]!.length < 2
           ? Promise.resolve([url(s)])
           : fetch(url(s, true), { method: 'HEAD' }).then(
               (res) => {
-                if (res.ok) return [url(s, true)];
+                if (res.status === 200) return [url(s, true)];
+                if (!live) return null;
                 this.log(`said in pieces, not rendered whole yet: ${s}`);
                 return pieces[i]!.map((p) => url(p));
               },
-              () => pieces[i]!.map((p) => url(p)),
+              () => (live ? pieces[i]!.map((p) => url(p)) : null),
             ),
       ),
-    ).then((urls) => {
+    ).then((found) => {
       if (line !== this.line) return;
+      // an engine that cannot render here has only its prebuilt lines; one missing sentence and the
+      // whole line goes to the system voice rather than switching voices mid-line
+      if (found.some((u) => u === null)) {
+        this.log(`not prebuilt, said by the system voice: ${text}`);
+        this.speakSystem(text);
+        return;
+      }
+      const urls = found.filter((u): u is string[] => u !== null);
       // every clip is requested at once: the server renders them in order while the first plays
       const clips = urls.flatMap((list, i) =>
         list.map((src) => {

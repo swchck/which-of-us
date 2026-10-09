@@ -3,7 +3,7 @@ import type { ArenaSnap, ClientMsg, RoomView } from '../../../shared/protocol';
 import { audio } from '../common/audio';
 import { LiveInk } from '../common/ink';
 import { GameSocket } from '../common/socket';
-import { collectLogs, tvLog, watchErrors } from './log';
+import { collectLogs, keepLog, tvLog, watchErrors } from './log';
 
 const SESSION_KEY = 'kto-iz-nas:host';
 
@@ -45,9 +45,10 @@ watchErrors();
 fetch('/api/info')
   .then((res) => res.json() as Promise<{ logs?: boolean }>)
   .then((info) => {
+    keepLog(!!info.logs);
     if (info.logs) logs.value = { state: 'ready' };
   })
-  .catch(() => undefined);
+  .catch(() => keepLog(false));
 
 export async function saveLogs(): Promise<void> {
   logs.value = { state: 'saving' };
