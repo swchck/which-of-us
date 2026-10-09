@@ -1,0 +1,996 @@
+/* its own compositor layer: WebKit otherwise re-rasterizes the whole scene whenever the stage
+   above it fades, and a frame of that shows up as a flicker */
+.scenery {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  contain: strict;
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+.scenery .art {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* the place's art waits for its bitmaps (see Backdrop.vue); the sky gradient shows meanwhile */
+.scenery .art.raw > rect ~ * {
+  visibility: hidden;
+}
+
+/* stage light, vignette and halftone over every scene, on a layer of its own: sharing the scenery's,
+   WebKit re-rasterized the masked halftone under every moving balloon, a third of the idle lobby's CPU */
+.scenery .light {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  will-change: transform;
+  background:
+    radial-gradient(ellipse 70% 55% at 50% 18%, rgba(255, 244, 214, 0.18), transparent 70%),
+    radial-gradient(ellipse 85% 75% at 50% 50%, transparent 55%, rgba(12, 4, 32, 0.55) 100%);
+}
+
+.scenery .light::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle, rgba(12, 4, 32, 0.5) 30%, transparent 34%) 0 0 / 14px 14px;
+  mask-image: radial-gradient(ellipse 90% 80% at 50% 45%, transparent 62%, #000 100%);
+  opacity: 0.55;
+}
+
+.scenery .confetti {
+  animation: drift linear infinite;
+}
+
+.scenery .rays {
+  transform-origin: 960px 540px;
+  animation: spin 40s linear infinite;
+}
+
+.scenery .beam {
+  transform-origin: 960px 120px;
+}
+
+.scenery .b1 {
+  animation: sweep 5s ease-in-out infinite;
+}
+
+.scenery .b2 {
+  animation: sweep 6s ease-in-out infinite reverse;
+}
+
+.scenery .b3 {
+  animation: sweep 7s ease-in-out infinite;
+}
+
+.scenery .bulb {
+  animation: blink-bulb 1.6s steps(2) infinite;
+}
+
+.scenery .disco {
+  transform-origin: 960px 140px;
+  animation: wobble 3s ease-in-out infinite;
+}
+
+.scenery .twinkle {
+  animation: twinkle 3s ease-in-out infinite;
+}
+
+.scenery .firefly {
+  animation: firefly ease-in-out infinite;
+}
+
+.scenery .fire {
+  animation: flicker 0.4s ease-in-out infinite alternate;
+  transform-box: fill-box;
+  transform-origin: bottom center;
+}
+
+.scenery .glow {
+  animation: glow 1.2s ease-in-out infinite alternate;
+}
+
+.scenery .planet {
+  animation: float 8s ease-in-out infinite;
+}
+
+.scenery .planet2 {
+  animation: float 11s ease-in-out infinite reverse;
+}
+
+.scenery .ufo {
+  animation: ufo 14s ease-in-out infinite;
+}
+
+.scenery .fish {
+  animation: swim linear infinite;
+}
+
+.scenery .fish.back {
+  animation-name: swim-back;
+}
+
+.scenery .weed {
+  transform-box: fill-box;
+  transform-origin: bottom center;
+  animation: sway 4s ease-in-out infinite alternate;
+}
+
+.scenery .bubble {
+  animation: rise linear infinite;
+}
+
+.scenery .plane {
+  animation: fly 26s linear infinite;
+}
+
+.scenery .blinker {
+  animation: blink-bulb 1.2s steps(2) infinite;
+}
+
+.scenery .blinky {
+  animation: blink-bulb steps(2) infinite;
+}
+
+.scenery .shooting {
+  animation: shoot 7s ease-in infinite;
+}
+
+.scenery .balloon {
+  animation: balloon linear infinite;
+}
+
+.scenery .tile {
+  opacity: 0.08;
+  animation: tile 1.4s steps(2) infinite;
+}
+
+.scenery .sparkles {
+  transform-origin: 960px 140px;
+  animation: spin 24s linear infinite;
+}
+
+.scenery .smoke {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: smoke 6s ease-out infinite;
+}
+
+.scenery .shooting.late {
+  animation-delay: 3.5s;
+  animation-duration: 9s;
+}
+
+.scenery .whale {
+  animation: whale 70s linear infinite;
+}
+
+.scenery .jelly-drift {
+  animation: jelly-rise linear infinite;
+}
+
+.scenery .jelly {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: jelly-pulse 2s ease-in-out infinite;
+}
+
+.scenery .search {
+  transform-box: fill-box;
+  transform-origin: bottom center;
+}
+
+.scenery .s1 {
+  animation: sweep 7s ease-in-out infinite;
+}
+
+.scenery .s2 {
+  animation: sweep 9s ease-in-out infinite reverse;
+}
+
+.scenery .cloud {
+  animation: cloud linear infinite;
+}
+
+.scenery .car {
+  animation: car linear infinite;
+}
+
+.scenery .car.back {
+  animation-name: car-back;
+}
+
+.scenery .starfield {
+  transform-origin: 960px 540px;
+  animation: spin 400s linear infinite;
+}
+
+.scenery .rocket {
+  animation: rocket 22s linear infinite;
+}
+
+.scenery .flame {
+  transform-box: fill-box;
+  transform-origin: top center;
+  animation: flicker 0.15s ease-in-out infinite alternate;
+}
+
+.scenery .leaf {
+  transform-box: fill-box;
+  transform-origin: bottom center;
+  animation: sway 3.5s ease-in-out infinite alternate;
+}
+
+.scenery .butterfly {
+  animation: butterfly ease-in-out infinite;
+}
+
+.scenery .wings {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: flap 0.2s ease-in-out infinite alternate;
+}
+
+.scenery .aurora {
+  opacity: 0.22;
+  animation: aurora 9s ease-in-out infinite alternate;
+}
+
+.scenery .circle-fly {
+  animation: circle-fly 10s linear infinite;
+}
+
+.scenery .lightning {
+  opacity: 0;
+  animation: lightning 11s linear infinite;
+}
+
+.scenery .bolt {
+  opacity: 0;
+  animation: lightning 11s linear infinite;
+}
+
+.scenery .stripes {
+  animation: stripes 1.6s linear infinite;
+}
+
+.scenery .row {
+  /* ease-in reads as ground rushing toward the viewer: rows crawl at the horizon, race up close */
+  animation: row cubic-bezier(0.6, 0, 1, 0.6) infinite;
+}
+
+.scenery .chase {
+  animation: chase 12s linear infinite;
+}
+
+.scenery .boat {
+  animation: boat 60s linear infinite;
+}
+
+.scenery .ball {
+  animation: ball 1.6s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+}
+
+.scenery .vine {
+  transform-box: fill-box;
+  transform-origin: top center;
+  animation: sway 5s ease-in-out infinite alternate;
+}
+
+.scenery .parrot {
+  animation: hop 2.4s ease-in-out infinite;
+}
+
+.scenery .flake {
+  animation: snowfall linear infinite;
+}
+
+.scenery .tumble {
+  animation: tumble 11s linear infinite;
+}
+
+.scenery .spin-weed {
+  animation: spin 1.6s linear infinite;
+}
+
+.scenery .bat {
+  animation: bat linear infinite;
+}
+
+.scenery .flap {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: flap 0.35s ease-in-out infinite alternate;
+}
+
+.scenery .ghost {
+  animation: ghost 6s ease-in-out infinite;
+}
+
+
+.scenery .invader {
+  animation: hop 1.2s steps(2) infinite;
+}
+
+.scenery .chomp {
+  transform-box: fill-box;
+  transform-origin: left center;
+  animation: chomp 0.4s steps(2) infinite;
+}
+
+.scenery .gull {
+  animation: gull linear infinite;
+}
+
+.scenery .wave {
+  animation: wave 4s linear infinite;
+}
+
+@keyframes balloon {
+  from {
+    translate: 0 0;
+  }
+  50% {
+    translate: 30px -700px;
+  }
+  to {
+    translate: -20px -1400px;
+  }
+}
+
+@keyframes tile {
+  from {
+    opacity: 0.05;
+  }
+  to {
+    opacity: 0.2;
+  }
+}
+
+@keyframes smoke {
+  from {
+    translate: 0 0;
+    scale: 0.6;
+    opacity: 0.7;
+  }
+  to {
+    translate: 40px -260px;
+    scale: 2.2;
+    opacity: 0;
+  }
+}
+
+@keyframes whale {
+  from {
+    transform: translate(-600px, 380px);
+  }
+  to {
+    transform: translate(2400px, 330px);
+  }
+}
+
+@keyframes jelly-rise {
+  from {
+    translate: 0 0;
+  }
+  to {
+    translate: 60px -1400px;
+  }
+}
+
+@keyframes jelly-pulse {
+  0%,
+  100% {
+    scale: 1 1;
+  }
+  50% {
+    scale: 1.12 0.86;
+  }
+}
+
+@keyframes cloud {
+  from {
+    translate: -300px 0;
+  }
+  to {
+    translate: 2250px 0;
+  }
+}
+
+@keyframes car {
+  from {
+    translate: -80px 0;
+  }
+  to {
+    translate: 2000px 0;
+  }
+}
+
+@keyframes car-back {
+  from {
+    translate: 2000px 0;
+  }
+  to {
+    translate: -80px 0;
+  }
+}
+
+@keyframes rocket {
+  0% {
+    transform: translate(-150px, 1100px);
+  }
+  40% {
+    transform: translate(2100px, -200px);
+  }
+  100% {
+    transform: translate(2100px, -200px);
+  }
+}
+
+@keyframes butterfly {
+  0% {
+    transform: translate(-60px, 620px);
+  }
+  25% {
+    transform: translate(500px, 480px);
+  }
+  50% {
+    transform: translate(1000px, 640px);
+  }
+  75% {
+    transform: translate(1500px, 460px);
+  }
+  100% {
+    transform: translate(1990px, 600px);
+  }
+}
+
+@keyframes aurora {
+  from {
+    translate: -120px 0;
+    opacity: 0.12;
+  }
+  to {
+    translate: 120px 20px;
+    opacity: 0.32;
+  }
+}
+
+@keyframes circle-fly {
+  from {
+    transform: translate(1300px, 300px) rotate(0deg) translateX(180px) rotate(0deg);
+  }
+  to {
+    transform: translate(1300px, 300px) rotate(360deg) translateX(180px) rotate(-360deg);
+  }
+}
+
+@keyframes lightning {
+  0%,
+  90%,
+  92%,
+  94%,
+  100% {
+    opacity: 0;
+  }
+  91% {
+    opacity: 0.55;
+  }
+  93% {
+    opacity: 0.3;
+  }
+}
+
+@keyframes stripes {
+  from {
+    translate: 0 0;
+  }
+  to {
+    translate: 0 34px;
+  }
+}
+
+@keyframes row {
+  from {
+    translate: 0 0;
+  }
+  to {
+    translate: 0 380px;
+  }
+}
+
+@keyframes chase {
+  from {
+    translate: -200px 0;
+  }
+  to {
+    translate: 2200px 0;
+  }
+}
+
+@keyframes boat {
+  from {
+    translate: -100px 0;
+  }
+  to {
+    translate: 2050px 0;
+  }
+}
+
+@keyframes ball {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: 0 -150px;
+  }
+}
+
+.scenery .circ-spot {
+  transform-box: fill-box;
+  transform-origin: top center;
+}
+
+.scenery .circ-flags {
+  transform-box: fill-box;
+  transform-origin: top center;
+  animation: circ-flutter 1.8s ease-in-out infinite alternate;
+}
+
+.scenery .circ-juggle {
+  animation: circ-juggle 1.4s linear infinite alternate;
+}
+
+.scenery .circ-seal {
+  animation: hop 1.6s ease-in-out infinite;
+}
+
+.scenery .circ-roll {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: turn 4s linear infinite;
+}
+
+.scenery .farm-blades {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: turn 18s linear infinite;
+}
+
+.scenery .farm-tail {
+  transform-box: fill-box;
+  transform-origin: top center;
+  animation: sway 1.4s ease-in-out infinite alternate;
+}
+
+.scenery .farm-peck {
+  transform-box: fill-box;
+  transform-origin: bottom center;
+  animation: farm-peck 3.2s ease-in-out infinite;
+}
+
+.scenery .soft-glow {
+  animation: glow 4s ease-in-out infinite alternate;
+}
+
+.scenery .museum-frame {
+  transform-box: fill-box;
+  transform-origin: top center;
+  animation: museum-sway 6s ease-in-out infinite alternate;
+}
+
+.scenery .museum-laser {
+  animation: museum-laser 1.8s ease-in-out infinite alternate;
+}
+
+.scenery .museum-dust {
+  animation: museum-mote ease-in-out infinite;
+}
+
+.scenery .cabin-rush {
+  animation: cabin-rush linear infinite;
+}
+
+.scenery .rest-lamp {
+  transform-box: fill-box;
+  transform-origin: top center;
+  animation: rest-lamp 5s ease-in-out infinite alternate;
+}
+
+.scenery .rest-steam {
+  animation: rest-steam 3s ease-out infinite;
+}
+
+.scenery .dino-neck {
+  transform-box: fill-box;
+  transform-origin: 86% 92%;
+  animation: sway 3.2s ease-in-out infinite alternate;
+}
+
+.scenery .dino-palm {
+  transform-box: fill-box;
+  transform-origin: bottom center;
+  animation: rock 5s ease-in-out infinite alternate;
+}
+
+.scenery .dino-egg {
+  transform-box: fill-box;
+  transform-origin: bottom center;
+  animation: egg-wobble 3.5s ease-in-out infinite;
+}
+
+@keyframes turn {
+  to {
+    rotate: 360deg;
+  }
+}
+
+@keyframes circ-flutter {
+  from {
+    scale: 1 1;
+  }
+  to {
+    scale: 1 0.82;
+  }
+}
+
+/* per-keyframe easing makes the arc: decelerate going up, accelerate coming down */
+@keyframes circ-juggle {
+  0% {
+    translate: 0 0;
+    animation-timing-function: ease-out;
+  }
+  50% {
+    translate: 70px -230px;
+    animation-timing-function: ease-in;
+  }
+  100% {
+    translate: 140px 0;
+  }
+}
+
+@keyframes farm-peck {
+  0%,
+  55%,
+  100% {
+    rotate: 0deg;
+  }
+  65%,
+  85% {
+    rotate: 28deg;
+  }
+  75% {
+    rotate: 4deg;
+  }
+}
+
+@keyframes museum-sway {
+  from {
+    rotate: -1.2deg;
+  }
+  to {
+    rotate: 1.2deg;
+  }
+}
+
+@keyframes museum-laser {
+  from {
+    opacity: 0.15;
+  }
+  to {
+    opacity: 0.8;
+  }
+}
+
+@keyframes museum-mote {
+  0%,
+  100% {
+    translate: 0 0;
+    opacity: 0.2;
+  }
+  50% {
+    translate: 24px -40px;
+    opacity: 0.8;
+  }
+}
+
+@keyframes cabin-rush {
+  from {
+    translate: 0 0;
+  }
+  to {
+    translate: -1920px 0;
+  }
+}
+
+@keyframes rest-lamp {
+  from {
+    rotate: -3deg;
+  }
+  to {
+    rotate: 3deg;
+  }
+}
+
+@keyframes rest-steam {
+  from {
+    translate: 0 0;
+    opacity: 0;
+  }
+  30% {
+    opacity: 0.8;
+  }
+  to {
+    translate: 0 -50px;
+    opacity: 0;
+  }
+}
+
+@keyframes rock {
+  from {
+    rotate: -2deg;
+  }
+  to {
+    rotate: 2deg;
+  }
+}
+
+@keyframes egg-wobble {
+  0%,
+  60%,
+  100% {
+    rotate: 0deg;
+  }
+  70% {
+    rotate: -9deg;
+  }
+  80% {
+    rotate: 8deg;
+  }
+  90% {
+    rotate: -4deg;
+  }
+}
+
+/* nobody watches the scenery during a pause or a lost connection, so stop burning the GPU on it */
+.scenery.still .art * {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scenery .art * {
+    animation: none !important;
+  }
+}
+
+@keyframes hop {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: 0 -14px;
+  }
+}
+
+@keyframes snowfall {
+  from {
+    translate: 0 0;
+  }
+  to {
+    translate: 60px 1080px;
+  }
+}
+
+@keyframes tumble {
+  from {
+    transform: translate(-120px, 930px);
+  }
+  to {
+    transform: translate(2040px, 930px);
+  }
+}
+
+@keyframes bat {
+  from {
+    translate: 2000px 0;
+  }
+  to {
+    translate: -120px 0;
+  }
+}
+
+@keyframes flap {
+  from {
+    scale: 1 1;
+  }
+  to {
+    scale: 1 0.4;
+  }
+}
+
+@keyframes ghost {
+  0%,
+  100% {
+    transform: translate(300px, 620px);
+    opacity: 0.85;
+  }
+  50% {
+    transform: translate(420px, 560px);
+    opacity: 0.35;
+  }
+}
+
+
+@keyframes chomp {
+  from {
+    scale: 1 1;
+  }
+  to {
+    scale: 1 0.1;
+  }
+}
+
+@keyframes gull {
+  from {
+    translate: -120px 0;
+  }
+  to {
+    translate: 2040px -40px;
+  }
+}
+
+@keyframes wave {
+  from {
+    translate: 0 0;
+  }
+  to {
+    translate: -200px 0;
+  }
+}
+
+@keyframes drift {
+  0% {
+    transform: translate(0, -60px);
+  }
+  100% {
+    transform: translate(40px, 1140px);
+  }
+}
+
+@keyframes sweep {
+  0%,
+  100% {
+    transform: rotate(-18deg);
+  }
+  50% {
+    transform: rotate(18deg);
+  }
+}
+
+@keyframes blink-bulb {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.35;
+  }
+}
+
+@keyframes twinkle {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.25;
+  }
+}
+
+@keyframes firefly {
+  0%,
+  100% {
+    transform: translate(0, 0);
+    opacity: 0.2;
+  }
+  50% {
+    transform: translate(30px, -40px);
+    opacity: 1;
+  }
+}
+
+/* the individual scale property, because a CSS transform would wipe out the SVG transform attribute */
+@keyframes flicker {
+  from {
+    scale: 1 1;
+  }
+  to {
+    scale: 1.08 0.92;
+  }
+}
+
+@keyframes glow {
+  from {
+    opacity: 0.6;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes ufo {
+  0%,
+  100% {
+    transform: translate(1500px, 860px);
+  }
+  50% {
+    transform: translate(1300px, 800px) rotate(-6deg);
+  }
+}
+
+@keyframes shoot {
+  0% {
+    transform: translate(200px, 50px);
+    opacity: 0;
+  }
+  5% {
+    opacity: 1;
+  }
+  15% {
+    transform: translate(900px, 380px);
+    opacity: 0;
+  }
+  100% {
+    transform: translate(900px, 380px);
+    opacity: 0;
+  }
+}
+
+@keyframes swim {
+  from {
+    translate: -260px 0;
+  }
+  to {
+    translate: 2180px 0;
+  }
+}
+
+@keyframes swim-back {
+  from {
+    translate: 2180px 0;
+  }
+  to {
+    translate: -260px 0;
+  }
+}
+
+@keyframes sway {
+  from {
+    rotate: -6deg;
+  }
+  to {
+    rotate: 6deg;
+  }
+}
+
+@keyframes rise {
+  from {
+    translate: 0 0;
+  }
+  to {
+    translate: 30px -1240px;
+  }
+}
+
+@keyframes fly {
+  from {
+    translate: -200px 140px;
+  }
+  to {
+    translate: 2200px 60px;
+  }
+}

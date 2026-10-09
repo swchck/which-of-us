@@ -1,0 +1,15 @@
+Pictures for the drawing tasks in client/public/sketch/. All three are in the public domain:
+hat and stars under CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/), the rabbit by
+its author's public domain release. Credits are given as a courtesy.
+
+hat.webp — "Pith helmet - Royal Canadian Military Institute - Toronto, Canada" by Daderot,
+  https://commons.wikimedia.org/wiki/File:Pith_helmet_-_Royal_Canadian_Military_Institute_-_Toronto,_Canada_-_DSC00325.jpg
+  Background removed.
+
+rabbit.webp — "Rabbit2.jpg" by Jon Sullivan (PD Photo.org),
+  https://commons.wikimedia.org/wiki/File:Rabbit2.jpg
+  Background removed, hind paws restored.
+
+stars.webp — "Vía-Láctea-estrellas-cielo-nocturno.jpg" by FelixMittermeier,
+  https://commons.wikimedia.org/wiki/File:V%C3%ADa-L%C3%A1ctea-estrellas-cielo-nocturno.jpg
+  Downscaled.

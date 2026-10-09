@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 164 314" width="164" height="314">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#3d1f7a"/>
+      <stop offset="100%" stop-color="#7a52d4"/>
+    </linearGradient>
+  </defs>
+  <rect width="164" height="314" fill="url(#bg)"/>
+  <circle cx="30" cy="250" r="4" fill="#ffd23f"/>
+  <circle cx="140" cy="40" r="4" fill="#22d3ee"/>
+  <circle cx="130" cy="280" r="3" fill="#ff4f8b"/>
+  <g font-family="Arial Rounded MT Bold, Arial Black, sans-serif" font-weight="900" text-anchor="middle">
+    <text x="82" y="62" font-size="30" fill="#1b1033" stroke="#1b1033" stroke-width="7" stroke-linejoin="round">Кто</text>
+    <text x="82" y="60" font-size="30" fill="#ffd23f">Кто</text>
+    <text x="82" y="98" font-size="26" fill="#1b1033" stroke="#1b1033" stroke-width="7" stroke-linejoin="round">из нас?</text>
+    <text x="82" y="96" font-size="26" fill="#ffffff">из нас?</text>
+  </g>
+  <g transform="translate(82 190) scale(0.38)">
+    <ellipse cx="0" cy="10" rx="150" ry="138" fill="#e8a24a" stroke="#1b1033" stroke-width="10"/>
+    <path d="M-146 -10 Q-150 -128 0 -130 Q150 -128 146 -10 Q140 18 118 6 Q104 34 84 10 Q64 32 40 8 Q16 36 -10 8 Q-36 34 -58 8 Q-82 32 -100 6 Q-124 26 -146 -10 Z" fill="#ff7ac8" stroke="#1b1033" stroke-width="10"/>
+    <ellipse cx="0" cy="-62" rx="48" ry="26" fill="#2a1458" stroke="#1b1033" stroke-width="10"/>
+    <ellipse cx="-46" cy="22" rx="17" ry="20" fill="#1b1033"/>
+    <ellipse cx="46" cy="22" rx="17" ry="20" fill="#1b1033"/>
+    <path d="M-34 58 Q0 96 34 58" stroke="#1b1033" stroke-width="10" fill="none" stroke-linecap="round"/>
+  </g>
+</svg>

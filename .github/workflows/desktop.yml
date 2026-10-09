@@ -1,0 +1,82 @@
+name: desktop
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    env:
+      # the runtime is copied into the installer, so it must be a uv-managed Python, never the runner's own
+      UV_PYTHON_PREFERENCE: only-managed
+    steps:
+      - uses: actions/checkout@v4
+
+      # node --build-sea (used for the server sidecar) needs Node 25.5+; official builds have SEA enabled
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 26
+          cache: npm
+
+      - uses: astral-sh/setup-uv@v7
+
+      # the live voice for names and answers: its Python packages come from the lock file
+      - run: uv sync --frozen --python 3.12
+        working-directory: tts/vosk
+
+      - uses: actions/cache@v4
+        with:
+          path: tts/models/vosk
+          key: vosk-model-${{ runner.os }}-${{ hashFiles('tts/vosk/model.sha256') }}
+
+      # checks the download against the host's MD5 and the committed per-file SHA-256 list
+      - run: node scripts/fetch-vosk-model.mjs
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: desktop/src-tauri
+
+      - run: npm ci
+
+      - run: npm run check
+
+      - run: npm run desktop:build
+
+      # one live render through the runtime that went into the installer
+      - run: npm run tts:smoke
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kto-iz-nas-${{ runner.os }}
+          path: |
+            desktop/src-tauri/target/release/bundle/dmg/*.dmg
+            desktop/src-tauri/target/release/bundle/nsis/*.exe
+          if-no-files-found: error
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: installers
+          merge-multiple: true
+
+      # a draft, so the notes and the unsigned-app instructions get a look before players see it
+      - run: gh release create "$GITHUB_REF_NAME" installers/* --draft --title "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY"
+        env:
+          GH_TOKEN: ${{ github.token }}

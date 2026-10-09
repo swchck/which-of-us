@@ -1,0 +1,17 @@
+node_modules/
+dist/
+dist-server/
+.DS_Store
+build/
+desktop/src-tauri/target/
+desktop/src-tauri/gen/
+desktop/src-tauri/binaries/
+.claude/settings.local.json
+test-results/
+playwright-report/
+tts/*/.venv/
+tts/models/
+tts/cache/
+.claude/
+__pycache__/
+docs/design/

@@ -1,0 +1,45 @@
+<!-- the canvas is far larger than the 660x440 window: Finder draws the background 1:1 from the top-left and never
+     stretches it, so a tab or sidebar that widens the window would otherwise show bare white -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" width="1600" height="1000">
+  <defs>
+    <linearGradient id="bg" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="440">
+      <stop offset="0%" stop-color="#3d1f7a"/>
+      <stop offset="45%" stop-color="#6a45c4"/>
+      <stop offset="100%" stop-color="#8a6ad8"/>
+    </linearGradient>
+    <radialGradient id="glow" gradientUnits="userSpaceOnUse" cx="330" cy="255" r="400">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1600" height="1000" fill="url(#bg)"/>
+  <rect width="1600" height="1000" fill="url(#glow)"/>
+  <g opacity="0.9">
+    <rect x="40" y="40" width="14" height="7" rx="3" fill="#ffd23f" transform="rotate(25 47 43)"/>
+    <rect x="600" y="70" width="14" height="7" rx="3" fill="#22d3ee" transform="rotate(-30 607 73)"/>
+    <circle cx="92" cy="120" r="5" fill="#ff4f8b"/>
+    <circle cx="570" cy="140" r="5" fill="#2ed47a"/>
+    <rect x="300" y="395" width="14" height="7" rx="3" fill="#ff4f8b" transform="rotate(40 307 398)"/>
+    <circle cx="60" cy="390" r="5" fill="#22d3ee"/>
+    <rect x="610" y="380" width="14" height="7" rx="3" fill="#ffd23f" transform="rotate(-15 617 383)"/>
+    <circle cx="520" cy="35" r="4" fill="#ffffff"/>
+    <circle cx="150" cy="60" r="4" fill="#ffffff"/>
+    <circle cx="720" cy="110" r="5" fill="#ff4f8b"/>
+    <rect x="760" y="300" width="14" height="7" rx="3" fill="#2ed47a" transform="rotate(20 767 303)"/>
+    <circle cx="840" cy="460" r="4" fill="#ffffff"/>
+    <rect x="180" y="480" width="14" height="7" rx="3" fill="#22d3ee" transform="rotate(-25 187 483)"/>
+    <circle cx="470" cy="500" r="5" fill="#ffd23f"/>
+    <circle cx="700" cy="520" r="4" fill="#ff4f8b"/>
+  </g>
+  <g font-family="Arial Rounded MT Bold, Arial Black, Helvetica, sans-serif" font-weight="900" text-anchor="middle">
+    <text x="330" y="92" font-size="50" fill="#1b1033" stroke="#1b1033" stroke-width="10" stroke-linejoin="round" transform="rotate(-3 330 80)">Кто из нас?</text>
+    <text x="330" y="88" font-size="50" fill="#ffd23f" transform="rotate(-3 330 80)">Кто из нас?</text>
+    <text x="330" y="132" font-size="17" fill="#ffffff" opacity="0.85">Вечеринка для ТВ и телефонов</text>
+  </g>
+  <g transform="translate(330 250)">
+    <path d="M-62 0 Q0 -26 52 0" fill="none" stroke="#1b1033" stroke-width="13" stroke-linecap="round"/>
+    <path d="M-62 0 Q0 -26 52 0" fill="none" stroke="#ffd23f" stroke-width="7" stroke-linecap="round" stroke-dasharray="2 13"/>
+    <path d="M38 -16 L62 2 L34 12 Z" fill="#ffd23f" stroke="#1b1033" stroke-width="4" stroke-linejoin="round"/>
+  </g>
+  <text x="330" y="292" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle" opacity="0.9">перетащите в «Программы»</text>
+</svg>

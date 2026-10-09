@@ -1,0 +1,11 @@
+# LF everywhere: the narrator's sentence hashes are taken from source text, and a CRLF checkout would change them
+* text=auto eol=lf
+*.webm binary
+*.pack binary
+*.mp3 binary
+*.png binary
+*.bmp binary
+*.tiff binary
+*.ico binary
+*.icns binary
+*.woff2 binary

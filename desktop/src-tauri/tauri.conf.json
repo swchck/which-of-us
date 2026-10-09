@@ -1,0 +1,86 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Кто из нас",
+  "mainBinaryName": "kto-iz-nas",
+  "version": "1.0.0",
+  "identifier": "app.ktoiznas.desktop",
+  "build": {
+    "frontendDist": "../splash",
+    "beforeBuildCommand": "npm run desktop:prepare"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "Кто из нас?",
+        "url": "index.html",
+        "width": 1280,
+        "height": 720,
+        "minWidth": 960,
+        "minHeight": 540,
+        "center": true,
+        "backgroundColor": "#1a0b3d",
+        "titleBarStyle": "Overlay",
+        "hiddenTitle": true
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "category": "Game",
+    "shortDescription": "Вечеринка-игра для ТВ и телефонов",
+    "longDescription": "Большой экран показывает игру, гости играют с телефонов через браузер в той же Wi-Fi сети.",
+    "externalBin": [
+      "binaries/kto-server"
+    ],
+    "resources": {
+      "../../dist/": "web/",
+      "../../build/tts-pack/": "tts-cache/",
+      "../../build/tts-runtime/": "tts-runtime/"
+    },
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "macOS": {
+      "minimumSystemVersion": "11.0",
+      "signingIdentity": "-",
+      "hardenedRuntime": false,
+      "dmg": {
+        "background": "../dmg-background.tiff",
+        "windowSize": {
+          "width": 660,
+          "height": 440
+        },
+        "appPosition": {
+          "x": 170,
+          "y": 250
+        },
+        "applicationFolderPosition": {
+          "x": 490,
+          "y": 250
+        }
+      }
+    },
+    "windows": {
+      "nsis": {
+        "languages": [
+          "Russian",
+          "English"
+        ],
+        "sidebarImage": "../nsis-sidebar.bmp",
+        "headerImage": "../nsis-header.bmp",
+        "installerIcon": "icons/icon.ico",
+        "installMode": "perMachine",
+        "installerHooks": "installer-hooks.nsh"
+      }
+    }
+  }
+}

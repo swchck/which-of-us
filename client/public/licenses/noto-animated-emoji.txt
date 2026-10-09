@@ -1,0 +1,7 @@
+Animated emoji: Noto Emoji Animation by Google
+https://googlefonts.github.io/noto-emoji-animation/
+
+Licensed under the Creative Commons Attribution 4.0 International License (CC BY 4.0)
+https://creativecommons.org/licenses/by/4.0/
+
+The files in this game were downloaded unchanged from fonts.gstatic.com/s/e/notoemoji/latest/<codepoint>/lottie.json

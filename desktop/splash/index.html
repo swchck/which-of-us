@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Кто из нас?</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        background: radial-gradient(circle at 50% 40%, #5b2db0, #2f1566 60%, #1a0b3d);
+        color: #fff;
+        font-family: 'Arial Rounded MT Bold', 'Trebuchet MS', system-ui, sans-serif;
+        overflow: hidden;
+      }
+      main {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 24px;
+        text-align: center;
+      }
+      h1 {
+        margin: 0;
+        font-size: 64px;
+        color: #ffd23f;
+        text-shadow:
+          0 5px 0 #1b1033,
+          4px 0 0 #1b1033,
+          -4px 0 0 #1b1033,
+          0 -4px 0 #1b1033;
+        transform: rotate(-3deg);
+      }
+      svg {
+        animation: bounce 1.4s ease-in-out infinite;
+      }
+      p {
+        margin: 0;
+        font-size: 22px;
+        color: #b7a6e6;
+      }
+      .fail {
+        display: none;
+        max-width: 520px;
+        color: #fff;
+      }
+      body.failed .fail {
+        display: block;
+      }
+      body.failed .wait {
+        display: none;
+      }
+      @keyframes bounce {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-12px);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main data-tauri-drag-region>
+      <h1>Кто из нас?</h1>
+      <svg viewBox="-170 -170 340 340" width="200" height="200" aria-hidden="true">
+        <ellipse cx="0" cy="10" rx="150" ry="138" fill="#e8a24a" stroke="#1b1033" stroke-width="10" />
+        <path
+          d="M-146 -10 Q-150 -128 0 -130 Q150 -128 146 -10 Q140 18 118 6 Q104 34 84 10 Q64 32 40 8 Q16 36 -10 8 Q-36 34 -58 8 Q-82 32 -100 6 Q-124 26 -146 -10 Z"
+          fill="#ff7ac8"
+          stroke="#1b1033"
+          stroke-width="10"
+        />
+        <ellipse cx="0" cy="-62" rx="48" ry="26" fill="#2a1458" stroke="#1b1033" stroke-width="10" />
+        <ellipse cx="-46" cy="22" rx="17" ry="20" fill="#1b1033" />
+        <ellipse cx="46" cy="22" rx="17" ry="20" fill="#1b1033" />
+        <path d="M-34 58 Q0 100 34 58" stroke="#1b1033" stroke-width="10" fill="none" stroke-linecap="round" />
+      </svg>
+      <p class="wait">Бублик готовит сцену…</p>
+      <p class="fail">
+        Не получилось запустить игровой сервер. Закройте другие копии игры и попробуйте снова. Если
+        не поможет — перезагрузите компьютер.
+      </p>
+    </main>
+    <script>
+      window.showFailure = () => document.body.classList.add('failed');
+    </script>
+  </body>
+</html>
