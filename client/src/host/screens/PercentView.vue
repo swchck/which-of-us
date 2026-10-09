@@ -37,7 +37,7 @@ const people = (ids: string[]) => ids.map((id) => playerById(id)).filter((p) => 
 
     <div v-else class="scale">
       <div v-if="hero" class="hero">
-        <Avatar :player="hero" :code="view.code" :size="150" :ring="5" />
+        <Avatar :player="hero" :code="view.code" :size="110" :ring="5" />
         <b class="display">{{ hero.name }}</b>
       </div>
       <div class="bar plate">
@@ -72,10 +72,10 @@ const people = (ids: string[]) => ids.map((id) => playerById(id)).filter((p) => 
 .percent {
   position: absolute;
   inset: 0;
-  padding: 50px 170px 230px 90px;
+  padding: 44px 170px 230px 90px;
   display: flex;
   flex-direction: column;
-  gap: 30px;
+  gap: 24px;
 }
 
 .top {
@@ -97,7 +97,7 @@ const people = (ids: string[]) => ids.map((id) => playerById(id)).filter((p) => 
 
 .text {
   margin-top: 8px;
-  font-size: 58px;
+  font-size: 52px;
   font-weight: 900;
   line-height: 1.12;
 }
@@ -121,14 +121,14 @@ const people = (ids: string[]) => ids.map((id) => playerById(id)).filter((p) => 
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 26px;
+  gap: 18px;
 }
 
 .hero {
   display: flex;
   align-items: center;
   gap: 18px;
-  font-size: 44px;
+  font-size: 40px;
   color: #fff;
   text-shadow: 0 4px 0 var(--ink);
 }
