@@ -48,9 +48,12 @@ const ownQuote = computed(() => view.value?.personal.kind === 'vote' && view.val
         </button>
       </div>
     </template>
-    <Waiting v-else title="Голос принят!" :note="`Вы выбрали: ${chosen.name}`">
-      <Avatar :player="chosen" :code="view.code" :size="90" />
-    </Waiting>
+    <template v-else>
+      <Waiting title="Голос принят!" :note="`Вы выбрали: ${chosen.name}`">
+        <Avatar :player="chosen" :code="view.code" :size="90" />
+      </Waiting>
+      <JokerButton />
+    </template>
   </div>
 </template>
 

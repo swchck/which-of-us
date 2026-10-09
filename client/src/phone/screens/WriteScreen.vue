@@ -4,6 +4,7 @@ import { computed, ref } from 'vue';
 import { CLUE_MAX, CLUE_WORDS, FIB_MAX, GUESS_MAX, HERD_MAX, QUIP_MAX, QUOTE_MAX } from '../../../../shared/protocol';
 import { clueProblem, clueWords, givesAway } from '../../../../shared/catalog';
 import Avatar from '../../common/Avatar.vue';
+import Emoji from '../../common/Emoji.vue';
 import { answer, playerById, view } from '../store';
 import Waiting from './Waiting.vue';
 
@@ -85,7 +86,7 @@ function submitLines(): void {
       </div>
       <div class="picked display">
         <Emoji v-for="(e, i) in emoji" :key="i" class="pop-in" :char="e" />
-        <span v-if="!emoji.length" class="placeholder">три эмодзи про героя</span>
+        <span v-if="!emoji.length" class="placeholder">до пяти эмодзи про героя</span>
       </div>
       <div class="palette">
         <button v-for="e in PALETTE" :key="e" type="button" class="key" :disabled="emoji.length >= EMOJI_LIMIT" @click="addEmoji(e)"><Emoji :char="e" /></button>

@@ -19,7 +19,14 @@ const IOS_MAX_TICKS = 3;
 let lastTap = 0;
 let label: HTMLLabelElement | null = null;
 
+function typing(): boolean {
+  const el = document.activeElement;
+  return (el instanceof HTMLInputElement && el.type !== 'checkbox') || el instanceof HTMLTextAreaElement || (el instanceof HTMLElement && el.isContentEditable);
+}
+
 function iosTick(): void {
+  // clicking the label focuses its checkbox, which blurred a field the same tap had just opened (the lobby rename closed at once)
+  if (typing()) return;
   if (!label) {
     // Safari 18+ taps the Taptic Engine when a `switch` checkbox is toggled by a user gesture; there is no Vibration API
     // (see github.com/tijnjh/ios-haptics). Rendered but clipped: a display:none input is not reliably toggled.

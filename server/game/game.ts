@@ -786,6 +786,23 @@ export class Game {
     this.host.changed();
   }
 
+  /** Takes back a joker played on this question, as long as the answers are not locked yet. */
+  cancelJoker(playerId: string, phaseId: number): void {
+    const p = this.player(playerId);
+    if (phaseId !== this.phaseId || !p || !this.jokersPlayed.has(playerId) || !this.answersOpen()) return;
+    this.jokersPlayed.delete(playerId);
+    p.jokers++;
+    this.host.changed();
+  }
+
+  /** Whether the phase still takes answers: it waits on someone who has not answered yet. */
+  private answersOpen(): boolean {
+    const w = this.waiter;
+    if (!w?.expect || w.graceTimer) return false;
+    const players = w.expect.who();
+    return players.length === 0 || !players.every(w.expect.done);
+  }
+
   /** Jokers double points for agreeing with the room, so only questions scored that way take them. */
   private jokerAllowed(playerId: string): boolean {
     const phase = this.phase;
@@ -5589,6 +5606,7 @@ export class Game {
           kind: 'vote',
           answer: typeof answer === 'string' ? answer : undefined,
           joker: this.jokerAllowed(playerId) ? this.jokersPlayed.has(playerId) : undefined,
+          jokerFixed: this.jokersPlayed.has(playerId) && !this.answersOpen() ? true : undefined,
           mine:
             ((phase.quote || phase.emoji) && playerId === this.quoteAuthor) ||
             (phase.duel && phase.options.includes(playerId))
@@ -5888,6 +5906,7 @@ export class Game {
           role: phase.target === playerId ? 'target' : 'guesser',
           answer: typeof answer === 'number' ? answer : undefined,
           joker: this.jokerAllowed(playerId) ? this.jokersPlayed.has(playerId) : undefined,
+          jokerFixed: this.jokersPlayed.has(playerId) && !this.answersOpen() ? true : undefined,
         };
       }
       case 'draw': {

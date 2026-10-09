@@ -1,9 +1,9 @@
 import { spawn, type ChildProcess } from 'node:child_process';
 
 /**
- * Keeps the computer and its display awake while any room has a game on. On macOS this runs
- * `caffeinate`, which the TV page's Wake Lock cannot replace: the desktop app's WebKit view has no
- * Wake Lock API. Elsewhere it does nothing and the TV page's own lock is all there is.
+ * Keeps the computer and its display awake while any room has a game on or a TV page on this computer
+ * is on screen, menus included. On macOS this runs `caffeinate`, which the TV page's Wake Lock cannot
+ * replace: the desktop app's WebKit view has no Wake Lock API. Elsewhere it does nothing and the TV page's own lock is all there is.
  */
 
 const holders = new Set<object>();

@@ -21,6 +21,8 @@ export default tseslint.config(
       'vue/singleline-html-element-content-newline': 'off',
       'vue/html-self-closing': 'off',
       'vue/no-v-html': 'off',
+      // an unimported component renders as an empty unknown tag, and neither vue-tsc nor the build says a word
+      'vue/no-undef-components': 'error',
     },
   },
 );

@@ -1,4 +1,4 @@
-import { computed, ref, shallowRef } from 'vue';
+import { computed, ref, shallowRef, watch } from 'vue';
 import type { ArenaSnap, ClientMsg, RoomView } from '../../../shared/protocol';
 import { audio } from '../common/audio';
 import { LiveInk } from '../common/ink';
@@ -67,6 +67,13 @@ export const socket = new GameSocket((): ClientMsg | null => {
   if (wantRoom.value) return { t: 'host.create' };
   return null;
 });
+
+// the desktop app's WebKit view has no Wake Lock API, so the server beside it keeps the Mac awake instead
+function tellAwake(): void {
+  socket.send({ t: 'awake', on: document.visibilityState === 'visible' });
+}
+watch(socket.status, (status) => status === 'open' && tellAwake());
+document.addEventListener('visibilitychange', tellAwake);
 
 const arenaListeners = new Set<(snap: ArenaSnap) => void>();
 

@@ -43,11 +43,13 @@ const target = computed(() => playerById(phase.value?.target));
         </button>
       </div>
     </template>
-    <Waiting
-      v-else
-      :title="personal.role === 'target' ? 'Записано!' : 'Ставка сделана!'"
-      :note="`Ваш ответ: ${phase.options[personal.answer]}`"
-    />
+    <template v-else>
+      <Waiting
+        :title="personal.role === 'target' ? 'Записано!' : 'Ставка сделана!'"
+        :note="`Ваш ответ: ${phase.options[personal.answer]}`"
+      />
+      <JokerButton />
+    </template>
   </div>
 </template>
 

@@ -7,6 +7,7 @@ import { join } from 'node:path';
 import { WebSocketServer, type WebSocket } from 'ws';
 import { TTS_INFO } from '../shared/catalog.js';
 import { IMAGE_MAX_BYTES, TTS_ENGINES, type ClientMsg, type TtsEngine } from '../shared/protocol.js';
+import { holdAwake, releaseAwake } from './awake.js';
 import { DURATIONS, type Durations } from './game/types.js';
 import { FreshnessLog } from './fresh.js';
 import { saveReport } from './report.js';
@@ -426,6 +427,7 @@ export async function startApp(opts: AppOptions): Promise<RunningApp> {
     ws.on('error', () => undefined);
     let room: Room | undefined;
     let role: 'host' | 'player' | null = null;
+    const local = fromThisComputer(req, relayNonce);
 
     let budget = MSG_BURST;
     let refilled = Date.now();
@@ -453,6 +455,11 @@ export async function startApp(opts: AppOptions): Promise<RunningApp> {
 
       if (msg.t === 'ping') {
         send(ws, { t: 'pong', at: Number(msg.at) || 0, serverNow: Date.now() });
+        return;
+      }
+
+      if (msg.t === 'awake') {
+        if (local) (msg.on ? holdAwake : releaseAwake)(ws);
         return;
       }
 
@@ -522,6 +529,7 @@ export async function startApp(opts: AppOptions): Promise<RunningApp> {
     };
 
     ws.on('close', () => {
+      releaseAwake(ws);
       if (!room) return;
       if (role === 'host') room.detachHost(ws);
       else room.disconnect(ws);

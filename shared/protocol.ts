@@ -1105,8 +1105,10 @@ export type Personal =
       mine?: boolean;
       /** A joker is played on this question; absent where jokers are not allowed. */
       joker?: boolean;
+      /** Answers are locked, so a played joker can no longer be taken back. */
+      jokerFixed?: boolean;
     }
-  | { kind: 'predict'; role: 'target' | 'guesser'; answer?: number; joker?: boolean }
+  | { kind: 'predict'; role: 'target' | 'guesser'; answer?: number; joker?: boolean; jokerFixed?: boolean }
   | {
       kind: 'draw';
       done: boolean;
@@ -1452,8 +1454,8 @@ export type ClientMsg =
   | { t: 'color'; color: number }
   /** A new display name, lobby only. */
   | { t: 'rename'; name: string }
-  /** Doubles this player's points for the current question, spending one joker. */
-  | { t: 'joker'; phaseId: number }
+  /** Doubles this player's points for the current question, spending one joker; `off` takes it back while answers are open. */
+  | { t: 'joker'; phaseId: number; off?: boolean }
   /** A lobby-written «Кто из нас?» question. */
   | ({ t: 'question' } & QuestionDraft)
   | { t: 'start' }
@@ -1467,7 +1469,9 @@ export type ClientMsg =
   | { t: 'guess'; phaseId: number; text: string }
   /** Tilt input, each axis in [-1, 1]; +y points toward the bottom of the arena. */
   | { t: 'tilt'; phaseId: number; x: number; y: number }
-  | { t: 'ping'; at: number };
+  | { t: 'ping'; at: number }
+  /** Whether the TV page is on screen; the server keeps its own computer awake for a visible TV beside it. */
+  | { t: 'awake'; on: boolean };
 
 export type ServerMsg =
   | { t: 'host.welcome'; code: string; token: string }

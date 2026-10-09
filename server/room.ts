@@ -1014,7 +1014,8 @@ export class Room implements GameHost {
         if (player.vip) this.game?.skip();
         break;
       case 'joker':
-        this.game?.playJoker(player.id, Number(msg.phaseId));
+        if (msg.off) this.game?.cancelJoker(player.id, Number(msg.phaseId));
+        else this.game?.playJoker(player.id, Number(msg.phaseId));
         break;
       case 'rename': {
         // mid-game a name is already printed on titles, drawings and chat threads

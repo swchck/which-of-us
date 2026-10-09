@@ -1118,6 +1118,42 @@ describe('full game with bots', () => {
     room.dispose();
   });
 
+  it('takes a joker back until everyone has answered, then holds it', async () => {
+    const room = makeRoom(110, 1);
+    room.settings.minis = 0;
+    room.settings.spotlight = false;
+    for (const name of ['Аня', 'Боря', 'Вера']) room.join(fakePhone(), name, 0);
+    room.start();
+    const game = (room as unknown as { game: Game }).game;
+    const [anya, borya, vera] = ['Аня', 'Боря', 'Вера'].map((n) => room.players().find((p) => p.name === n)!) as [Player, Player, Player];
+    const ended = playToEnd(room, 30_000, []);
+    await until(() => game.phase.kind === 'vote', 30_000);
+    game.playJoker(anya.id, game.phaseId);
+    game.cancelJoker(anya.id, game.phaseId);
+    expect(anya.jokers).toBe(3);
+    expect(game.personal(anya.id)).toMatchObject({ joker: false });
+
+    game.playJoker(anya.id, game.phaseId);
+    game.answer(anya.id, game.phaseId, borya.id);
+    expect(game.personal(anya.id)).toMatchObject({ joker: true, jokerFixed: undefined });
+    game.cancelJoker(anya.id, game.phaseId);
+    expect(anya.jokers).toBe(3);
+
+    game.playJoker(anya.id, game.phaseId);
+    expect(anya.jokers).toBe(3);
+    game.playJoker(vera.id, game.phaseId);
+    for (const p of [borya, vera]) game.answer(p.id, game.phaseId, borya.id);
+    expect(game.personal(vera.id)).toMatchObject({ joker: true, jokerFixed: true });
+    game.cancelJoker(vera.id, game.phaseId);
+    expect(vera.jokers).toBe(2);
+    await until(() => game.phase.kind === 'voteReveal', 30_000);
+    const reveal = game.phase;
+    if (reveal.kind !== 'voteReveal') throw new Error('no vote reveal');
+    expect(reveal.jokers).toEqual([vera.id]);
+    await ended;
+    room.dispose();
+  });
+
   it('puts two people on one shared team and counts how often they answered alike', async () => {
     const room = makeRoom(109, 1);
     room.settings.minis = 0;

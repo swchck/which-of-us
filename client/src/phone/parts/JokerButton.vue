@@ -3,27 +3,37 @@ import { computed } from 'vue';
 import { me, send, view } from '../store';
 import { event } from '../haptics';
 
-/** Shown on questions that take a joker; one tap spends it, there is no taking it back. */
-const played = computed(() => {
+/** Shown on questions that take a joker; a played one can be taken back until the answers lock. */
+const personal = computed(() => {
   const p = view.value?.personal;
-  return p?.kind === 'vote' || p?.kind === 'predict' ? p.joker : undefined;
+  return p?.kind === 'vote' || p?.kind === 'predict' ? p : undefined;
 });
+const played = computed(() => personal.value?.joker);
+const fixed = computed(() => !!personal.value?.jokerFixed);
+const answered = computed(() => personal.value?.answer !== undefined);
 const left = computed(() => me.value?.jokers ?? 0);
+// the server only takes a new joker before this phone's own answer
+const shown = computed(() => played.value === true || (played.value === false && !answered.value && left.value > 0));
 
-function play(): void {
+function toggle(): void {
   const v = view.value;
-  if (!v || played.value !== false || left.value <= 0) return;
-  send({ t: 'joker', phaseId: v.phaseId });
-  event('hit');
-  // the server's answer comes with the next update; show the joker on the table right away
-  if (v.personal.kind === 'vote' || v.personal.kind === 'predict') view.value = { ...v, personal: { ...v.personal, joker: true } };
+  if (!v || played.value === undefined || fixed.value) return;
+  if (!played.value && (answered.value || left.value <= 0)) return;
+  send({ t: 'joker', phaseId: v.phaseId, off: played.value || undefined });
+  if (!played.value) event('hit');
+  // the server's answer comes with the next update; move the joker on the table right away
+  if (v.personal.kind === 'vote' || v.personal.kind === 'predict') view.value = { ...v, personal: { ...v.personal, joker: !played.value } };
 }
 </script>
 
 <template>
-  <button v-if="played !== undefined && (played || left > 0)" class="joker" :class="{ on: played }" :disabled="played" @click="play">
+  <button v-if="shown" class="joker" :class="{ on: played }" :disabled="fixed" @click="toggle">
     <span class="card">🃏</span>
-    <span v-if="played" class="text"><b>Джокер ×2 стоит</b><small>очки за этот ответ удвоятся</small></span>
+    <span v-if="played" class="text">
+      <b>Джокер ×2 стоит</b>
+      <small v-if="fixed">очки за этот ответ удвоятся</small>
+      <small v-else>передумали? Нажмите, пока ответили не все</small>
+    </span>
     <span v-else class="text"><b>Поставить джокер ×2</b><small>если уверены, что ответят как вы · осталось {{ left }}</small></span>
   </button>
 </template>

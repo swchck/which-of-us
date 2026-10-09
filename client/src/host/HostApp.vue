@@ -125,7 +125,8 @@ function onResize(): void {
 }
 
 const kind = computed(() => view.value?.phase.kind);
-useWakeLock(computed(() => kind.value !== undefined && kind.value !== 'lobby'));
+// a screensaver over the menu or the lobby QR breaks the party as much as one mid-game
+useWakeLock(ref(true));
 const theme = computed<Theme>(() => {
   if (!view.value || kind.value === 'lobby') return 'lobby';
   if (kind.value === 'final') return 'final';
