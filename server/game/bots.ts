@@ -460,6 +460,19 @@ export class BotDriver {
           }
           break;
         }
+        case 'stack': {
+          // rate in layers/sec, varied per bot so they don't tie
+          const rate = 1.5 + rng() * 2.5;
+          const opensIn = Math.max(0, phase.startsAt - Date.now()) / this.pace;
+          const window = (phase.deadline - phase.startsAt) / this.pace;
+          for (let i = 1; i <= 5; i++) {
+            this.later(bot, opensIn + (window * i) / 5, () => {
+              const elapsed = Math.max(0, Math.min(Date.now(), phase.deadline) - phase.startsAt) / 1000;
+              this.game.answer(bot.id, phaseId, Math.floor(elapsed * rate));
+            });
+          }
+          break;
+        }
         case 'taleVote': {
           const me = this.game.personal(bot.id);
           if (me.kind !== 'taleVote' || me.teller) break;

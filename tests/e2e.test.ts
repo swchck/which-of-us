@@ -123,6 +123,7 @@ const SEGMENT_PHASES: Record<Segment, PhaseKind[]> = {
   rhyme: ['write', 'rushVote', 'rushReveal'],
   junk: ['write', 'junkBid', 'junkSold'],
   ninja: ['ninja', 'ninjaReveal'],
+  stack: ['stack', 'stackReveal'],
   case: ['caseSurvey', 'caseClue', 'caseReveal'],
   contact: ['contactWrite', 'contactGuess', 'contactReveal'],
   band: ['band', 'bandReveal'],

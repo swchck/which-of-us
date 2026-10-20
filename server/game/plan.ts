@@ -117,6 +117,7 @@ const SEGMENT_SECONDS: Record<Segment, number> = {
   rhyme: 200,
   junk: 230,
   ninja: 55,
+  stack: 65,
   case: 170,
   contact: 240,
   band: 45,

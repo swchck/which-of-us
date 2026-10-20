@@ -244,6 +244,10 @@ export interface Durations {
   ninjaCountdown: number;
   ninjaPlay: number;
   ninjaReveal: number;
+  /** «Башня»: the countdown, building and the result. */
+  stackCountdown: number;
+  stackPlay: number;
+  stackReveal: number;
   /** «Срисуй по памяти»: how long the picture shows, then the drawing. */
   copyShow: number;
   copyDraw: number;
@@ -422,6 +426,9 @@ export const DURATIONS: Durations = {
   ninjaCountdown: 3500,
   ninjaPlay: 30_000,
   ninjaReveal: 8000,
+  stackCountdown: 3500,
+  stackPlay: 45_000,
+  stackReveal: 8000,
   copyShow: 7000,
   copyDraw: 60_000,
   taleDraw: 70_000,

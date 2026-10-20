@@ -121,7 +121,10 @@ export interface SketchPrompt {
   pair?: true;
 }
 
-export const SKETCH_IMAGES = ['hat', 'rabbit', 'stars'] as const;
+export const SKETCH_IMAGES = [
+  'hat', 'rabbit', 'stars',
+  'cat', 'house', 'tree', 'fish', 'sun', 'bicycle', 'elephant', 'boat', 'penguin',
+] as const;
 export type SketchImage = (typeof SKETCH_IMAGES)[number];
 
 /** ListCategory is one «Кто больше» round: the room names as many things that fit as it can. */

@@ -53,6 +53,50 @@
       body.failed .wait {
         display: none;
       }
+      #update-banner {
+        display: none;
+        position: fixed;
+        bottom: 32px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #1b1033;
+        border: 3px solid #ffd23f;
+        border-radius: 18px;
+        padding: 16px 28px;
+        text-align: center;
+        min-width: 340px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+        z-index: 10;
+      }
+      #update-banner p {
+        margin: 0 0 14px;
+        font-size: 18px;
+        color: #ffd23f;
+        font-weight: 700;
+      }
+      #update-banner .btns {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+      }
+      #update-banner button {
+        padding: 8px 22px;
+        border-radius: 12px;
+        border: 2px solid #ffd23f;
+        font: inherit;
+        font-size: 16px;
+        font-weight: 800;
+        cursor: pointer;
+      }
+      #update-banner .btn-install {
+        background: #ffd23f;
+        color: #1b1033;
+      }
+      #update-banner .btn-skip {
+        background: transparent;
+        color: #b7a6e6;
+        border-color: #b7a6e6;
+      }
       @keyframes bounce {
         0%,
         100% {
@@ -86,8 +130,37 @@
         не поможет — перезагрузите компьютер.
       </p>
     </main>
+    <div id="update-banner">
+      <p id="update-msg">Доступно обновление</p>
+      <div class="btns">
+        <button class="btn-install" id="btn-install">Установить</button>
+        <button class="btn-skip" id="btn-skip">Позже</button>
+      </div>
+    </div>
     <script>
       window.showFailure = () => document.body.classList.add('failed');
+
+      (async () => {
+        const internals = window.__TAURI_INTERNALS__;
+        if (!internals) return;
+        try {
+          const update = await internals.invoke('plugin:updater|check', {});
+          if (!update) return;
+          const banner = document.getElementById('update-banner');
+          document.getElementById('update-msg').textContent =
+            `Доступно обновление ${update.version}`;
+          banner.style.display = 'block';
+          document.getElementById('btn-install').onclick = async () => {
+            document.getElementById('btn-install').textContent = 'Загрузка…';
+            document.getElementById('btn-install').disabled = true;
+            await internals.invoke('plugin:updater|download_and_install', { onEvent: null });
+            await internals.invoke('plugin:process|restart', {});
+          };
+          document.getElementById('btn-skip').onclick = () => {
+            banner.style.display = 'none';
+          };
+        } catch {}
+      })();
     </script>
   </body>
 </html>

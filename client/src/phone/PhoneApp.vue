@@ -55,6 +55,7 @@ import YearsScreen from './screens/YearsScreen.vue';
 import TaleScreen from './screens/TaleScreen.vue';
 import JunkScreen from './screens/JunkScreen.vue';
 import NinjaScreen from './screens/NinjaScreen.vue';
+import StackScreen from './screens/StackScreen.vue';
 import CaseScreen from './screens/CaseScreen.vue';
 import ContactScreen from './screens/ContactScreen.vue';
 import BandScreen from './screens/BandScreen.vue';
@@ -94,7 +95,7 @@ const deadline = computed(() => {
 const left = useCountdown(deadline, () => socket.now(), computed(() => view.value?.paused ?? false));
 const color = computed(() => (me.value ? PLAYER_COLORS[me.value.color] : 'var(--muted)'));
 // zooming a canvas screen would throw off where strokes and the joystick land
-const CANVAS_SCREENS = new Set(['draw', 'shared', 'guess', 'tilt', 'ninja', 'band']);
+const CANVAS_SCREENS = new Set(['draw', 'shared', 'guess', 'tilt', 'ninja', 'band', 'stack']);
 const zoomed = computed(() => prefs.big && !CANVAS_SCREENS.has(kind.value ?? ''));
 const remote = computed(() => me.value?.vip && kind.value !== 'lobby' && kind.value !== 'final');
 
@@ -116,7 +117,7 @@ watch(
 );
 
 /** Phases that need a tap from this phone, so it buzzes when one opens. */
-const ACTION_KINDS = new Set<string>(['vote', 'predict', 'scale', 'draw', 'photo', 'guess', 'tilt', 'write', 'never', 'tap', 'sync', 'closest', 'quipVote', 'truth', 'even', 'percent', 'percentGuess', 'percentBet', 'fibVote', 'simon', 'replyPick', 'foreheadGuess', 'hat', 'mafiaRoles', 'mafiaNight', 'mafiaVote', 'clover', 'shaker', 'quiz', 'years', 'taleVote', 'junkBid', 'ninja', 'caseSurvey', 'caseClue', 'contactWrite', 'contactGuess', 'band', 'spy', 'clueGuess', 'list', 'rps', 'plot', 'plotGuess', 'date', 'datePick', 'masq', 'masqGuess', 'radio', 'radioVote', 'rush', 'rushVote', 'market', 'waveHint', 'waveGuess', 'orderWrite', 'orderSort', 'freeze', 'tug']);
+const ACTION_KINDS = new Set<string>(['vote', 'predict', 'scale', 'draw', 'photo', 'guess', 'tilt', 'write', 'never', 'tap', 'sync', 'closest', 'quipVote', 'truth', 'even', 'percent', 'percentGuess', 'percentBet', 'fibVote', 'simon', 'replyPick', 'foreheadGuess', 'hat', 'mafiaRoles', 'mafiaNight', 'mafiaVote', 'clover', 'shaker', 'quiz', 'years', 'taleVote', 'junkBid', 'ninja', 'stack', 'caseSurvey', 'caseClue', 'contactWrite', 'contactGuess', 'band', 'spy', 'clueGuess', 'list', 'rps', 'plot', 'plotGuess', 'date', 'datePick', 'masq', 'masqGuess', 'radio', 'radioVote', 'rush', 'rushVote', 'market', 'waveHint', 'waveGuess', 'orderWrite', 'orderSort', 'freeze', 'tug']);
 
 watch(
   () => view.value?.phaseId,
@@ -245,6 +246,7 @@ watch(left, (now, was) => {
         <CaseScreen v-else-if="kind === 'caseSurvey' || kind === 'caseClue'" :key="view.phaseId" />
         <JunkScreen v-else-if="kind === 'junkBid'" :key="view.phaseId" />
         <NinjaScreen v-else-if="kind === 'ninja'" :key="view.phaseId" />
+        <StackScreen v-else-if="kind === 'stack'" :key="view.phaseId" />
         <QuizScreen v-else-if="kind === 'quiz'" :key="view.phaseId" />
         <YearsScreen v-else-if="kind === 'years'" :key="view.phaseId" />
         <SpyScreen v-else-if="kind === 'spy' || kind === 'spyGuess'" :key="view.phaseId" />

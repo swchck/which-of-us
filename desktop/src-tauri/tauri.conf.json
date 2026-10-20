@@ -28,9 +28,21 @@
       "csp": null
     }
   },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDc4REQ1MEI3N0JBNURGNzUKUldSMTM2Vjd0MURkZUJBbGZ6ZjRtRC9kTUF5aUlIWjZjRGhRSHlwOTBuM1RENHYyMWt4R3VqQnEK",
+      "endpoints": [
+        "https://github.com/swchck/which-of-us/releases/latest/download/latest.json"
+      ],
+      "windows": {
+        "installMode": "passive"
+      }
+    }
+  },
   "bundle": {
     "active": true,
     "targets": "all",
+    "createUpdaterArtifacts": true,
     "category": "Entertainment",
     "shortDescription": "Вечеринка-игра для ТВ и телефонов",
     "longDescription": "Большой экран показывает игру, гости играют с телефонов через браузер в той же Wi-Fi сети.",

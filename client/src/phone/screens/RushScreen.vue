@@ -98,7 +98,7 @@ const picked = computed(() => (personal.value?.kind === 'rushVote' ? playerById(
             v-for="(r, i) in replies"
             :key="r.player"
             class="reply deal"
-            :disabled="r.player === state.you"
+            :disabled="!phase.ask && r.player === state.you"
             :style="{ '--c': PLAYER_COLORS[playerById(r.player)?.color ?? 0], '--i': i }"
             @click="answer(r.player)"
           >

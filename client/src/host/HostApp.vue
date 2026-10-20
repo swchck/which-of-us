@@ -83,6 +83,7 @@ import TaleView from './screens/TaleView.vue';
 import CopyShowView from './screens/CopyShowView.vue';
 import JunkView from './screens/JunkView.vue';
 import NinjaView from './screens/NinjaView.vue';
+import StackView from './screens/StackView.vue';
 import CaseView from './screens/CaseView.vue';
 import ContactView from './screens/ContactView.vue';
 import BandView from './screens/BandView.vue';
@@ -98,6 +99,8 @@ import VoteView from './screens/VoteView.vue';
 import WriteView from './screens/WriteView.vue';
 import { createRoom, report, send, sendReport, socket, tellVoice, view, wantRoom } from './store';
 import { vTip } from './tip';
+import { recordGame, recordPlace } from './history';
+import { GAMES } from '../../../shared/protocol';
 
 const W = 1920;
 const H = 1080;
@@ -125,6 +128,14 @@ function onResize(): void {
 }
 
 const kind = computed(() => view.value?.phase.kind);
+watch(kind, (k, prev) => {
+  if (!k || k === prev) return;
+  if ((GAMES as readonly string[]).includes(k)) recordGame(k);
+  else if (k === 'intro') {
+    const phase = view.value?.phase;
+    if (phase?.kind === 'intro') recordPlace(phase.location);
+  }
+});
 // a screensaver over the menu or the lobby QR breaks the party as much as one mid-game
 useWakeLock(ref(true));
 const theme = computed<Theme>(() => {
@@ -385,6 +396,7 @@ watch(
           <CaseView v-else-if="kind === 'caseSurvey' || kind === 'caseClue' || kind === 'caseReveal'" :key="`ca${view.phaseId}`" />
           <JunkView v-else-if="kind === 'junkBid' || kind === 'junkSold'" :key="`jk${view.phaseId}`" />
           <NinjaView v-else-if="kind === 'ninja' || kind === 'ninjaReveal'" :key="kind === 'ninja' ? 'ninja' : `njr${view.phaseId}`" />
+          <StackView v-else-if="kind === 'stack' || kind === 'stackReveal'" :key="kind === 'stack' ? 'stack' : `stk${view.phaseId}`" />
           <CopyShowView v-else-if="kind === 'copyShow'" :key="`cs${view.phaseId}`" />
           <QuizView v-else-if="kind === 'quiz' || kind === 'quizReveal'" :key="`qz${view.phaseId}`" />
           <YearsView v-else-if="kind === 'years' || kind === 'yearsReveal'" :key="`yr${view.phaseId}`" />

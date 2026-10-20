@@ -180,6 +180,7 @@ export const GAMES = [
   'simon',
   'reply',
   'forehead',
+  'stack',
 ] as const;
 export type GameId = (typeof GAMES)[number];
 
@@ -813,6 +814,13 @@ export type Phase =
    */
   | { kind: 'ninja'; startsAt: number; deadline: number; fruits: NinjaFruit[]; scores: Record<string, number> }
   | { kind: 'ninjaReveal'; scores: Record<string, number>; bombs: Record<string, number>; gains: Record<string, number> }
+  /**
+   * «Башня»: each player builds their own tower on the phone; the server tracks layers scored.
+   * The phone sends its current layer count as an answer (like tap), finishing when time runs out
+   * or the block completely misses the previous one.
+   */
+  | { kind: 'stack'; startsAt: number; deadline: number; scores: Record<string, number> }
+  | { kind: 'stackReveal'; scores: Record<string, number>; gains: Record<string, number> }
   /** «Викторина на выбывание»: a wrong or missing answer costs a life; `alive` still have at least one. */
   | { kind: 'quiz'; q: string; options: string[]; n: number; of: number; deadline: number; alive: string[]; lives: Record<string, number>; answered: string[] }
   /** `out` lost their last life on this question. */
@@ -1221,6 +1229,7 @@ export type Personal =
   /** The culprit's phone knows it; everyone else picks a suspect once. */
   | { kind: 'caseClue'; culprit: boolean; answer?: string }
   | { kind: 'ninja'; sliced: number[]; score: number }
+  | { kind: 'stack'; layers: number }
   /** `mine` is this phone's own drawing, which it may not vote for. */
   | { kind: 'taleVote'; teller: boolean; mine?: string; answer?: string }
   | { kind: 'years'; answer?: number }

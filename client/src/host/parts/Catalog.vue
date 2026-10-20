@@ -6,15 +6,22 @@ import NewBadge from '../../common/NewBadge.vue';
 import { GAMES, LOCATIONS, type GameId, type LocationId } from '../../../../shared/protocol';
 import { GAME_INFO, LOCATION_INFO } from '../../../../shared/catalog';
 import { PLACE_SCENES } from '../../../../shared/scenes';
+import { gameCount, placeCount } from '../history';
 
 const props = defineProps<{ kind: 'games' | 'locations'; selected: readonly string[] }>();
 const emit = defineEmits<{ toggle: [id: string]; all: [on: boolean]; close: [] }>();
 
 const items = computed(() =>
   (props.kind === 'games'
-    ? GAMES.map((id) => ({ id: id as string, icon: GAME_INFO[id].icon, title: GAME_INFO[id].title, fresh: GAME_INFO[id].fresh === true, players: GAME_INFO[id].players ?? 0 }))
-    : LOCATIONS.map((id) => ({ id: id as string, icon: LOCATION_INFO[id].icon, title: LOCATION_INFO[id].title, fresh: LOCATION_INFO[id].fresh === true, players: 0 }))
-  ).sort((a, b) => Number(b.fresh) - Number(a.fresh)),
+    ? GAMES.map((id) => {
+        const count = gameCount(id);
+        return { id: id as string, icon: GAME_INFO[id].icon, title: GAME_INFO[id].title, fresh: GAME_INFO[id].fresh === true && count === 0, players: GAME_INFO[id].players ?? 0, count };
+      })
+    : LOCATIONS.map((id) => {
+        const count = placeCount(id);
+        return { id: id as string, icon: LOCATION_INFO[id].icon, title: LOCATION_INFO[id].title, fresh: LOCATION_INFO[id].fresh === true && count === 0, players: 0, count };
+      })
+  ).sort((a, b) => Number(b.fresh) - Number(a.fresh) || b.count - a.count),
 );
 const query = ref('');
 const shown = computed(() => {
@@ -73,6 +80,7 @@ const vFocus = { mounted: (el: HTMLElement) => el.focus({ preventScroll: true })
             <span class="title">{{ i.title }}</span>
             <NewBadge v-if="i.fresh" :size="14" />
             <span v-if="i.players" class="min" :title="`Нужно от ${i.players} игроков`">{{ i.players }}+</span>
+            <span v-if="i.count" class="plays" :title="`Сыграно ${i.count} раз`">{{ i.count }}×</span>
             <button
               class="check"
               :aria-label="selected.includes(i.id) ? `Убрать: ${i.title}` : `Добавить: ${i.title}`"
@@ -97,6 +105,7 @@ const vFocus = { mounted: (el: HTMLElement) => el.focus({ preventScroll: true })
         </div>
         <div class="info">
           <h2 class="display">{{ item.title }} <NewBadge v-if="item.fresh" :size="24" class="title-new" /></h2>
+          <p v-if="item.count" class="played-count">Сыграно: {{ item.count }} {{ item.count === 1 ? 'раз' : item.count < 5 ? 'раза' : 'раз' }}</p>
           <p v-if="item.players" class="needs">👥 Нужно от {{ item.players }} игроков, считая ботов — в компании поменьше эта игра не выпадет</p>
           <p v-if="game" class="pitch">{{ game.pitch }}</p>
           <p v-else-if="place" class="pitch">{{ place.theme }}. Вопросы и задания раунда будут про это место.</p>
@@ -252,6 +261,23 @@ const vFocus = { mounted: (el: HTMLElement) => el.focus({ preventScroll: true })
   color: #4a3b78;
   font-size: 15px;
   font-weight: 900;
+}
+
+.plays {
+  flex: none;
+  padding: 1px 7px;
+  border-radius: 10px;
+  background: #d4f0d4;
+  color: #2e6b2e;
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.played-count {
+  margin: -4px 0 8px;
+  font-size: 17px;
+  font-weight: 800;
+  color: #2e6b2e;
 }
 
 .needs {

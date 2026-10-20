@@ -138,6 +138,8 @@ const NEVER_ROUNDS = 3;
 const NEVER_POINTS = [100, 40];
 /** «Тапалка» points for the first, second and third fastest; ties share a place. */
 const TAP_POINTS = [150, 100, 50];
+/** «Стопка» points for the top three builders; ties share a place. */
+const STACK_POINTS = [100, 60, 30];
 /** Taps per second nobody's thumb beats; counts above it are a script, not a person. */
 const TAP_MAX_RATE = 20;
 const TAP_SHOW_MS = 120;
@@ -1075,6 +1077,8 @@ export class Game {
         return this.junk();
       case 'ninja':
         return this.ninja();
+      case 'stack':
+        return this.stack();
       case 'copy':
         return this.copy();
       case 'years':
@@ -3161,6 +3165,33 @@ export class Game {
     await this.narrated(this.dur.ninjaReveal, line);
   }
 
+  private async stack(): Promise<void> {
+    const say = this.host.decks.line('ninjaIntro');
+    const countdown = this.dur.stackCountdown + this.speech(say);
+    const startsAt = Date.now() + countdown;
+    const scores: Record<string, number> = {};
+    for (const p of this.active()) scores[p.id] = 0;
+    this.setPhase({ kind: 'stack', startsAt, deadline: startsAt + this.dur.stackPlay, scores }, say);
+    // phones send running layer count periodically, so last updates land after the deadline
+    await this.wait(countdown + this.dur.stackPlay + this.dur.grace);
+
+    const ranked = Object.entries(scores)
+      .filter(([, n]) => n > 0)
+      .sort((a, b) => b[1] - a[1]);
+    const gains: Record<string, number> = {};
+    let place = 0;
+    ranked.forEach(([id, n], i) => {
+      if (i > 0 && n < ranked[i - 1]![1]) place = i;
+      const points = STACK_POINTS[place] ?? 0;
+      if (points > 0) gains[id] = points;
+    });
+    this.award(gains);
+    const winner = ranked[0]?.[0];
+    const result = winner ? this.host.decks.line('tapWin', this.name(winner)) : 'Башня так и не выросла!';
+    this.setPhase({ kind: 'stackReveal', scores: { ...scores }, gains }, result);
+    await this.narrated(this.dur.stackReveal, result);
+  }
+
   /** The «Расследование» culprit while the clues come out; bots peek to accuse right now and then. */
   caseSecret(): string | undefined {
     return this.caseCulprit ?? undefined;
@@ -5085,6 +5116,16 @@ export class Game {
         }
         return true;
       }
+      case 'stack': {
+        // phones report a running layer count periodically; answer repeats by design
+        if (typeof value !== 'number' || !Number.isInteger(value) || !(playerId in phase.scores)) return false;
+        const now = Date.now();
+        if (now < phase.startsAt - 300) return false;
+        const elapsed = Math.max(0, Math.min(now, phase.deadline) - phase.startsAt) / 1000;
+        const cap = Math.floor(elapsed * 2) + 3;
+        phase.scores[playerId] = Math.min(value, cap);
+        return true;
+      }
       case 'taleVote': {
         const mine = this.taleCards.get(playerId);
         if (playerId === phase.teller || typeof value !== 'string' || value === mine || !phase.items.some((c) => c.id === value)) return false;
@@ -5735,6 +5776,8 @@ export class Game {
       }
       case 'ninja':
         return { kind: 'ninja', sliced: [...(this.ninjaSliced.get(playerId) ?? [])], score: phase.scores[playerId] ?? 0 };
+      case 'stack':
+        return { kind: 'stack', layers: phase.scores[playerId] ?? 0 };
       case 'taleVote': {
         const answer = this.answers.get(playerId);
         return { kind: 'taleVote', teller: phase.teller === playerId, mine: this.taleCards.get(playerId), answer: typeof answer === 'string' ? answer : undefined };
