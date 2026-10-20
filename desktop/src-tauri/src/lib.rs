@@ -10,6 +10,8 @@ use std::sync::Mutex;
 use std::time::Duration;
 
 use tauri::{AppHandle, Manager, RunEvent, Url};
+use tauri_plugin_deep_link::DeepLinkExt;
+use tauri_plugin_notification::NotificationExt;
 use tauri_plugin_shell::process::{CommandChild, CommandEvent};
 use tauri_plugin_shell::ShellExt;
 
@@ -61,6 +63,28 @@ fn note(app: &AppHandle, line: &str) {
         let secs = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0);
         let _ = writeln!(file, "{secs} {line}");
     }
+}
+
+fn focus_window(app: &AppHandle) {
+    if let Some(w) = app.get_webview_window("main") {
+        let _ = w.show();
+        let _ = w.unminimize();
+        let _ = w.set_focus();
+    }
+}
+
+fn notify_ready(app: &AppHandle) {
+    // only notify when window is not in the foreground — no point interrupting someone already watching
+    let focused = app.get_webview_window("main").and_then(|w| w.is_focused().ok()).unwrap_or(true);
+    if focused {
+        return;
+    }
+    let _ = app
+        .notification()
+        .builder()
+        .title("Кто из нас?")
+        .body("Сервер запущен — покажите QR-код гостям")
+        .show();
 }
 
 fn show_failure(app: &AppHandle) {
@@ -127,6 +151,7 @@ fn start_server(app: &AppHandle, port: u16, restarts: u32) -> Result<(), Box<dyn
                             ready = true;
                             if restarts == 0 {
                                 open_game(&handle, reported.trim());
+                                notify_ready(&handle);
                             }
                         }
                     }
@@ -169,10 +194,24 @@ fn restart(app: AppHandle, port: u16, restarts: u32) {
 
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_single_instance::init(|app, _argv, _cwd| {
+            // second instance tried to start — just bring our window to front
+            focus_window(app);
+        }))
+        .plugin(tauri_plugin_deep_link::init())
+        .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .setup(|app| {
+            // handle kto:// deep links that arrive while the app is running
+            let handle = app.handle().clone();
+            app.deep_link().on_open_url(move |_event| {
+                // bring the window to front; the URL carries the room code
+                // which future versions can parse and auto-join
+                focus_window(&handle);
+            });
+
             app.manage(Server {
                 child: Mutex::new(None),
                 exiting: AtomicBool::new(false),

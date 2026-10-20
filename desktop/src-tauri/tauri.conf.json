@@ -29,6 +29,11 @@
     }
   },
   "plugins": {
+    "deep-link": {
+      "desktop": [
+        { "scheme": "kto", "host": "*" }
+      ]
+    },
     "updater": {
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDc4REQ1MEI3N0JBNURGNzUKUldSMTM2Vjd0MURkZUJBbGZ6ZjRtRC9kTUF5aUlIWjZjRGhRSHlwOTBuM1RENHYyMWt4R3VqQnEK",
       "endpoints": [
