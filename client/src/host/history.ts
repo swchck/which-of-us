@@ -24,7 +24,7 @@ function load(): HostHistory {
 function save(h: HostHistory): void {
   try {
     localStorage.setItem(KEY, JSON.stringify(h));
-  } catch {}
+  } catch { /* localStorage unavailable */ }
 }
 
 export function recordGame(id: string): void {
