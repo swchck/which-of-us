@@ -76,6 +76,7 @@ const people = (ids: string[]) => ids.map((id) => playerById(id)).filter((p) => 
   display: flex;
   flex-direction: column;
   gap: 24px;
+  overflow: hidden;
 }
 
 .top {
