@@ -22,6 +22,10 @@ jobs:
 
   ui:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -31,9 +35,9 @@ jobs:
       - run: npm ci
       - run: npx playwright install --with-deps chromium
       # reference screenshots are taken on macOS; elsewhere fonts render a few pixels apart
-      - run: npm run test:ui -- --ignore-snapshots
+      - run: npm run test:ui -- --ignore-snapshots --shard=${{ matrix.shard }}/3
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: playwright-results
+          name: playwright-results-${{ matrix.shard }}
           path: test-results/

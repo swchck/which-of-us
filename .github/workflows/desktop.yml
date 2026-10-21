@@ -101,7 +101,9 @@ jobs:
         with:
           node-version: 20
 
-      - run: node scripts/updater-manifest.mjs "$GITHUB_REF_NAME" release/ > release/latest.json || true
+      - run: |
+          node scripts/updater-manifest.mjs "$GITHUB_REF_NAME" release/ > release/latest.json || true
+          [ -s release/latest.json ] || rm -f release/latest.json
         name: Generate updater manifest (skipped when no .sig files)
 
       # published at once: a draft is invisible to releases/latest/download, so the download links would 404

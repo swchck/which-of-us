@@ -30,9 +30,16 @@ if (sigs.length === 0) {
   process.exit(0);
 }
 
+// Tauri may name the .sig with the productName (Cyrillic) rather than the bundle identifier,
+// so match by extension suffix instead of exact name.
+function sigSuffix(filename) {
+  if (filename.endsWith('.app.tar.gz')) return '.app.tar.gz.sig';
+  return `.${filename.split('.').pop()}.sig`;
+}
+
 const platforms = {};
 for (const [platform, { bundle, installer }] of Object.entries(PLATFORMS)) {
-  const sigFile = files.find((f) => f === `${bundle}.sig` || f === `${installer}.sig`);
+  const sigFile = sigs.find((f) => f.endsWith(sigSuffix(bundle)) || f.endsWith(sigSuffix(installer)));
   if (!sigFile) continue;
   const bundleFile = files.find((f) => f === bundle);
   platforms[platform] = {
