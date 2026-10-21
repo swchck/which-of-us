@@ -158,6 +158,9 @@ function autoplay(phone: Client, code: string, token: string): void {
       case 'rules':
         act(() => phone.send({ t: 'answer', phaseId: v.phaseId, value: 'ready' }));
         break;
+      case 'rush':
+        act(() => phone.send({ t: 'answer', phaseId: v.phaseId, value: { text: `текст ${v.you}`, final: true } }));
+        break;
       case 'vote':
         act(() => {
           const options = p.options.filter((id) => p.allowSelf || id !== v.you);

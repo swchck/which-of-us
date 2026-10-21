@@ -88,7 +88,9 @@ function questionLines(): string[] {
   const blank: BlankPrompt[] = [...blankPrompts, ...Object.values(placeContent).flatMap((p) => p.blank ?? [])];
   const sketch: SketchPrompt[] = [...selfiePrompts, ...Object.values(placeContent).flatMap((p) => p.sketch ?? [])];
   return [
-    ...vote.flatMap((q) => [q.q, `Титул «${q.title}»!`, q.setup ?? '', q.after ?? '']),
+    // q.q and q.setup are individually cached; combined covers the case where speechSentences
+    // merges them (setup ending in … or » has no sentence-final punctuation for the split)
+    ...vote.flatMap((q) => [q.q, q.setup ?? '', q.setup ? `${q.setup} ${q.q}` : '', `Титул «${q.title}»!`, q.after ?? '']),
     ...predict.flatMap((q) => [q.q, q.setup ?? '', q.after ?? '']),
     ...blank.flatMap((p) => [p.q.replace('___', '…'), p.setup ?? '', p.after ?? '']),
     ...sketch.flatMap((p) => [p.q.includes('{name}') ? `${p.q}!` : `Модель — {name}. ${p.q}!`, p.setup ?? '', p.after ?? '', p.pose ? `{name}, сделайте селфи ${p.pose}!` : '']),
