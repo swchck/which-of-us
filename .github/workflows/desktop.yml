@@ -59,36 +59,20 @@ jobs:
       # one live render through the runtime that went into the installer
       - run: npm run tts:smoke
 
-      # Tauri copies .background/ into the DMG but the osascript window-setup step can fail
-      # silently on CI; re-run it here so the DS_Store is embedded before we ship
+      # Tauri's osascript step to embed the DS_Store can fail on CI; inject a pre-built
+      # DS_Store instead by converting UDZO→UDRW, copying the file, then UDRW→UDZO
       - if: runner.os == 'macOS'
-        name: Fix DMG background (set DS_Store via Finder)
+        name: Inject DS_Store into DMG (background + icon layout)
         run: |
           DMG=$(find desktop/src-tauri/target/release/bundle/dmg -name "*.dmg" | head -1)
-          DEVICE=$(hdiutil attach -readwrite -noverify -noautoopen "$DMG" | egrep '^/dev/' | sed 1q | awk '{print $1}')
-          VOLUME=$(diskutil info "$DEVICE" | awk '/Mount Point/{print $3}')
-          osascript - "$VOLUME" <<'ASCRIPT'
-          on run argv
-            set vol_path to item 1 of argv
-            tell application "Finder"
-              tell disk (POSIX file vol_path as alias)
-                open
-                set current view of container window to icon view
-                set toolbar visible of container window to false
-                set statusbar visible of container window to false
-                set the bounds of container window to {400, 100, 1060, 540}
-                set background picture of icon view options of container window ¬
-                  to file ".background:dmg-background.tiff"
-                update without registering applications
-                delay 2
-                close
-              end tell
-            end tell
-          end run
-          ASCRIPT
-          hdiutil detach "$DEVICE" -quiet
-          hdiutil convert "$DMG" -format UDZO -o "${DMG%.dmg}-compressed.dmg"
-          mv "${DMG%.dmg}-compressed.dmg" "$DMG"
+          echo "Patching: $DMG"
+          hdiutil convert "$DMG" -format UDRW -o /tmp/rw.dmg
+          hdiutil attach /tmp/rw.dmg -mountpoint /tmp/dmg-rw -noverify -noautoopen
+          cp desktop/dmg-ds-store /tmp/dmg-rw/.DS_Store
+          hdiutil detach /tmp/dmg-rw -quiet
+          hdiutil convert /tmp/rw.dmg -format UDZO -o /tmp/final.dmg
+          mv /tmp/final.dmg "$DMG"
+          rm /tmp/rw.dmg
 
       - uses: actions/upload-artifact@v4
         with:
