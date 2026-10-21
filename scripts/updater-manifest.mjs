@@ -3,8 +3,9 @@
 // Usage: node scripts/updater-manifest.mjs <version> <release-dir>
 // Writes the manifest to stdout; exits 0 even when no .sig files exist (unsigned build).
 
-import { readFileSync, readdirSync } from 'node:fs';
-import { join, basename } from 'node:path';
+import { readFileSync, readdirSync, existsSync } from 'node:fs';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const [, , version, dir] = process.argv;
 if (!version || !dir) {
@@ -45,9 +46,18 @@ if (Object.keys(platforms).length === 0) {
   process.exit(0);
 }
 
+function changelogNotes(ver) {
+  const root = dirname(fileURLToPath(import.meta.url));
+  const path = join(root, '..', 'CHANGELOG.md');
+  if (!existsSync(path)) return '';
+  const text = readFileSync(path, 'utf8');
+  const match = text.match(new RegExp(`^##\\s+${ver.replace(/\./g, '\\.')}\\s*$([\\s\\S]*?)(?=^##\\s|$)`, 'm'));
+  return match ? match[1].trim() : '';
+}
+
 const manifest = {
   version,
-  notes: '',
+  notes: changelogNotes(version),
   pub_date: new Date().toISOString(),
   platforms,
 };

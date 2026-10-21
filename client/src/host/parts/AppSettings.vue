@@ -8,8 +8,33 @@ import { isFullscreen, toggleFullscreen } from '../fullscreen';
 import { lessMotion, setLessMotion } from '../prefs';
 import { logs, saveLogs, send, view } from '../store';
 import SwitchRow from './SwitchRow.vue';
+import CHANGELOG_RAW from '../../../../CHANGELOG.md?raw';
 
 const emit = defineEmits<{ close: [] }>();
+
+const APP_VERSION = __APP_VERSION__;
+
+// parse "## version\n\nbody" blocks from the raw changelog
+function parseChangelog(raw: string): { version: string; notes: string }[] {
+  const result: { version: string; notes: string }[] = [];
+  let cur: { version: string; notes: string } | null = null;
+  for (const line of raw.split('\n')) {
+    const m = line.match(/^##\s+(.+)/);
+    if (m) {
+      if (cur) result.push({ ...cur, notes: cur.notes.trim() });
+      cur = { version: m[1].trim(), notes: '' };
+    } else if (cur) {
+      cur.notes += line + '\n';
+    }
+  }
+  if (cur) result.push({ ...cur, notes: cur.notes.trim() });
+  return result;
+}
+
+const changelog = parseChangelog(CHANGELOG_RAW);
+const showingWhatsNew = ref(false);
+const whatsNewVersion = ref('');
+const whatsNewNotes = ref('');
 
 const VOLUME_TITLES: Record<VolumeKey, string> = { master: 'Общая громкость', sfx: 'Звуки игры', music: 'Громкость музыки', voice: 'Громкость голоса' };
 
@@ -36,6 +61,12 @@ const voiceOptions = computed(() => [
 // a lone voice leaves nothing to pick
 const choices = computed(() => (voiceOptions.value.length > 1 ? voiceOptions.value : []));
 const chosen = (o: { value: string }) => o.value === audio.voiceChoice.value || (o.value === SYSTEM_VOICE && audio.voiceChoice.value.startsWith(SYSTEM_VOICE));
+
+function openWhatsNew(entry: { version: string; notes: string }) {
+  whatsNewVersion.value = entry.version;
+  whatsNewNotes.value = entry.notes;
+  showingWhatsNew.value = true;
+}
 
 const relayOn = computed(() => !!view.value?.relay && !!view.value.settings.relay);
 const relayNote = computed(() => {
@@ -150,10 +181,41 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey, true));
             </button>
             <p v-else class="saved">Архив на рабочем столе: <code>{{ logs.file }}</code></p>
           </section>
+
+          <section v-if="changelog.length">
+            <h3><Emoji char="🎉" /> О программе</h3>
+            <p v-if="APP_VERSION" class="note">Версия {{ APP_VERSION }}</p>
+            <div class="chips">
+              <button
+                v-for="entry in changelog"
+                :key="entry.version"
+                class="chip"
+                @click="openWhatsNew(entry)"
+              >
+                {{ entry.version }}
+              </button>
+            </div>
+          </section>
         </div>
       </div>
     </div>
   </div>
+
+  <!-- «Что нового» modal -->
+  <Teleport to="body">
+    <div v-if="showingWhatsNew" class="wn-backdrop" @click.self="showingWhatsNew = false">
+      <div class="wn-card sticker" role="dialog" aria-modal="true">
+        <div class="head">
+          <div>
+            <h2 class="display" style="font-size: 40px; margin: 0 0 4px;">Что нового</h2>
+            <p class="wn-ver">Версия {{ whatsNewVersion }}</p>
+          </div>
+          <button class="close" aria-label="Закрыть" @click="showingWhatsNew = false"><Icon name="close" /></button>
+        </div>
+        <div class="wn-notes">{{ whatsNewNotes }}</div>
+      </div>
+    </div>
+  </Teleport>
 </template>
 
 <style scoped>
@@ -361,5 +423,42 @@ h3 {
 
 .saved code {
   word-break: break-all;
+}
+
+.wn-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  background: rgba(18, 6, 42, 0.75);
+}
+
+.wn-card {
+  zoom: var(--stage-scale, 1);
+  width: 640px;
+  max-height: 80vh;
+  overflow-y: auto;
+  padding: 32px 40px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  animation: pop-in 300ms both;
+}
+
+.wn-card:focus { outline: none; }
+
+.wn-ver {
+  margin: 0;
+  font-size: 22px;
+  color: #7b6aaa;
+  font-weight: 700;
+}
+
+.wn-notes {
+  font-size: 22px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  color: var(--ink);
 }
 </style>

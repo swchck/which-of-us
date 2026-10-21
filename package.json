@@ -21,7 +21,7 @@
     "check": "npm run typecheck && npm run lint && npm test && npm run build",
     "desktop:sidecar": "node scripts/build-sidecar.mjs",
     "desktop:dev": "vite build && node scripts/build-sidecar.mjs && tauri dev",
-    "desktop:prepare": "vite build && node scripts/build-sidecar.mjs && tsx scripts/tts-bundle.ts && tsx scripts/tts-pack.ts && tsx scripts/tts-runtime.ts",
+    "desktop:prepare": "node scripts/changelog-export.mjs && vite build && node scripts/build-sidecar.mjs && tsx scripts/tts-bundle.ts && tsx scripts/tts-pack.ts && tsx scripts/tts-runtime.ts",
     "desktop:build": "tauri build",
     "tts:prebuild": "tsx scripts/tts-prebuild.ts",
     "tts:bundle": "tsx scripts/tts-bundle.ts",

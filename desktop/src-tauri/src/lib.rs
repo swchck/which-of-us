@@ -9,7 +9,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Mutex;
 use std::time::Duration;
 
-use tauri::{AppHandle, Manager, RunEvent, Url};
+use tauri::{AppHandle, Manager, RunEvent};
 use tauri_plugin_deep_link::DeepLinkExt;
 use tauri_plugin_notification::NotificationExt;
 use tauri_plugin_shell::process::{CommandChild, CommandEvent};
@@ -43,13 +43,12 @@ fn open_game(app: &AppHandle, port: &str) {
     let Some(window) = app.get_webview_window("main") else {
         return;
     };
-    match Url::parse(&format!("http://localhost:{port}/")) {
-        Ok(url) => {
-            if let Err(err) = window.navigate(url) {
-                eprintln!("cannot open the game page: {err}");
-            }
-        }
-        Err(err) => eprintln!("server reported a bad port {port:?}: {err}"),
+    // tell the splash page's JS the server is ready; it controls the exact moment of navigation
+    // so «Что нового» can delay it until the user dismisses the overlay
+    let url = format!("http://localhost:{port}/");
+    let js = format!("window.__onServerReady && window.__onServerReady({url:?})");
+    if let Err(err) = window.eval(&js) {
+        eprintln!("cannot notify splash of server ready: {err}");
     }
 }
 
@@ -63,6 +62,11 @@ fn note(app: &AppHandle, line: &str) {
         let secs = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0);
         let _ = writeln!(file, "{secs} {line}");
     }
+}
+
+#[tauri::command]
+fn app_version() -> &'static str {
+    env!("CARGO_PKG_VERSION")
 }
 
 fn focus_window(app: &AppHandle) {
@@ -223,6 +227,7 @@ pub fn run() {
             }
             Ok(())
         })
+        .invoke_handler(tauri::generate_handler![app_version])
         .build(tauri::generate_context!())
         .expect("error while building the app")
         .run(|app, event| {

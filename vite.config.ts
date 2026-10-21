@@ -7,6 +7,7 @@ import { defineConfig, type Plugin } from 'vite';
 
 const client = fileURLToPath(new URL('./client', import.meta.url));
 const dist = fileURLToPath(new URL('./dist', import.meta.url));
+const { version } = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8'));
 
 /** Writes .br and .gz next to each text asset; server/assets.ts picks them by Accept-Encoding. */
 function precompress(): Plugin {
@@ -30,6 +31,9 @@ function precompress(): Plugin {
 export default defineConfig({
   root: client,
   plugins: [vue(), precompress()],
+  define: {
+    __APP_VERSION__: JSON.stringify(version),
+  },
   build: {
     outDir: dist,
     emptyOutDir: true,
