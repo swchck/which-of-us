@@ -22,7 +22,7 @@ function parseChangelog(raw: string): { version: string; notes: string }[] {
     const m = line.match(/^##\s+(.+)/);
     if (m) {
       if (cur) result.push({ ...cur, notes: cur.notes.trim() });
-      cur = { version: m[1].trim(), notes: '' };
+      cur = { version: m[1]!.trim(), notes: '' };
     } else if (cur) {
       cur.notes += line + '\n';
     }

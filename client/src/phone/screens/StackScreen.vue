@@ -35,7 +35,7 @@ let rafId = 0;
 let lastTime = 0;
 
 function colorAt(i: number): string {
-  return COLORS[i % COLORS.length];
+  return COLORS[i % COLORS.length]!;
 }
 
 function initGame(canvas: HTMLCanvasElement): void {
@@ -69,7 +69,7 @@ function render(canvas: HTMLCanvasElement): void {
   ctx.translate(0, cameraOffset);
 
   for (let i = 0; i < n; i++) {
-    const b = stack[i];
+    const b = stack[i]!;
     const by = ch - (i + 1) * BLOCK_H;
     ctx.fillStyle = b.color;
     ctx.fillRect(b.x, by, b.w, BLOCK_H);
@@ -121,7 +121,7 @@ function drop(): void {
   if (!canvas) return;
   const cw = canvas.width;
 
-  const top = stack[stack.length - 1];
+  const top = stack[stack.length - 1]!;
   const ol = Math.max(moving.x, top.x);
   const or_ = Math.min(moving.x + moving.w, top.x + top.w);
   const ow = or_ - ol;
