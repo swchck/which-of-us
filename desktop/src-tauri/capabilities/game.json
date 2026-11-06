@@ -16,6 +16,9 @@
     "core:window:allow-is-fullscreen",
     "core:window:allow-start-dragging",
     "core:event:allow-listen",
-    "core:event:allow-unlisten"
+    "core:event:allow-unlisten",
+    "allow-voice-state",
+    "allow-voice-install",
+    "allow-voice-cancel"
   ]
 }

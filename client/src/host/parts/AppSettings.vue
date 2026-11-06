@@ -4,11 +4,11 @@ import { TTS_INFO } from '../../../../shared/catalog';
 import { audio, type VolumeKey } from '../../common/audio';
 import Emoji from '../../common/Emoji.vue';
 import Icon from '../../common/Icon.vue';
-import { isFullscreen, toggleFullscreen } from '../fullscreen';
+import { inTauri, isFullscreen, toggleFullscreen } from '../fullscreen';
 import { lessMotion, setLessMotion } from '../prefs';
 import { logs, saveLogs, send, view } from '../store';
 import SwitchRow from './SwitchRow.vue';
-import { load as loadVoice, missing } from '../voicePack';
+import { failure as voiceFailure, load as loadVoice, missing } from '../voicePack';
 import CHANGELOG_RAW from '../../../../CHANGELOG.md?raw';
 
 const emit = defineEmits<{ close: []; voice: [] }>();
@@ -32,7 +32,9 @@ function parseChangelog(raw: string): { version: string; notes: string }[] {
   return result;
 }
 
-const voiceMissing = computed(() => missing().length > 0);
+// also when the check itself failed: the screen is the only place that says why, and without
+// this entry a failed check looks exactly like having everything already
+const voiceMissing = computed(() => inTauri && (missing().length > 0 || !!voiceFailure.value));
 onMounted(() => void loadVoice());
 const changelog = parseChangelog(CHANGELOG_RAW);
 const showingWhatsNew = ref(false);
