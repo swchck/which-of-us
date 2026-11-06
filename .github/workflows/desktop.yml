@@ -59,6 +59,23 @@ jobs:
       # one live render through the runtime that went into the installer
       - run: npm run tts:smoke
 
+      # the same two directories the full installer carries, as archives the light build fetches
+      - run: npm run voice:archive
+
+      # both builds write the same bundle paths, so the full one is put aside before the light one
+      # runs; it is the installer for a computer that will never download anything
+      - name: Set the full installer aside
+        shell: bash
+        run: |
+          mkdir -p full
+          find desktop/src-tauri/target/release/bundle -maxdepth 2 \( -name '*.dmg' -o -name '*.exe' \) -exec mv {} full/ \;
+          ls -la full
+
+      - run: npm run desktop:build:lite
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+
       # Tauri's osascript step to embed the DS_Store can fail on CI; inject a pre-built
       # DS_Store instead by converting UDZO→UDRW, copying the file, then UDRW→UDZO
       - if: runner.os == 'macOS'
@@ -85,6 +102,18 @@ jobs:
             desktop/src-tauri/target/release/bundle/nsis/*.sig
           if-no-files-found: error
 
+      - uses: actions/upload-artifact@v4
+        with:
+          name: full-${{ runner.os }}
+          path: full/*
+          if-no-files-found: error
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: voice-${{ runner.os }}
+          path: build/voice/*
+          if-no-files-found: error
+
   release:
     if: startsWith(github.ref, 'refs/tags/v')
     needs: build
@@ -98,7 +127,20 @@ jobs:
 
       - uses: actions/download-artifact@v4
         with:
+          pattern: kto-iz-nas-*
           path: installers
+          merge-multiple: true
+
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: full-*
+          path: full
+          merge-multiple: true
+
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: voice-*
+          path: voice
           merge-multiple: true
 
       # the site and README link releases/latest/download/<name>, so the names carry no version;
@@ -109,8 +151,13 @@ jobs:
           find installers -name '*.exe' -exec mv {} release/kto-iz-nas-windows-x64-setup.exe \;
           find installers -name '*.tar.gz' -exec mv {} release/ \;
           find installers -name '*.sig' -exec mv {} release/ \;
+          # the full installers carry the voice inside, for a computer that cannot download it
+          find full -name '*.dmg' -exec mv {} release/kto-iz-nas-macos-arm64-full.dmg \;
+          find full -name '*.exe' -exec mv {} release/kto-iz-nas-windows-x64-full-setup.exe \;
+          mv voice/* release/
           ls -la release
           test -f release/kto-iz-nas-macos-arm64.dmg && test -f release/kto-iz-nas-windows-x64-setup.exe
+          test -f release/voice-macos.json && test -f release/voice-windows.json
 
       - uses: actions/setup-node@v4
         with:

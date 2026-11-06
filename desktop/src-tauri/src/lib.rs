@@ -15,6 +15,8 @@ use tauri_plugin_notification::NotificationExt;
 use tauri_plugin_shell::process::{CommandChild, CommandEvent};
 use tauri_plugin_shell::ShellExt;
 
+mod voice;
+
 /// Phones are told this port in the QR code, so keep it stable when it's free.
 const PREFERRED_PORT: u16 = 3000;
 const PORT_ATTEMPTS: u16 = 20;
@@ -102,7 +104,9 @@ fn show_failure(app: &AppHandle) {
 fn start_server(app: &AppHandle, port: u16, restarts: u32) -> Result<(), Box<dyn std::error::Error>> {
     let resources = app.path().resource_dir()?;
     let web = resources.join("web");
-    let runtime = resources.join("tts-runtime");
+    // a light build has no voice inside; what was downloaded sits in the data directory instead
+    let runtime = voice::downloaded(app, "tts-runtime").unwrap_or_else(|| resources.join("tts-runtime"));
+    let lines = voice::downloaded(app, "tts-pack").unwrap_or_else(|| resources.join("tts-cache"));
     // an app copied from a downloaded DMG carries the quarantine flag into every file; macOS lets the
     // app itself start after «Открыть», but would refuse the Python it ships when the server spawns it
     #[cfg(target_os = "macos")]
@@ -127,7 +131,7 @@ fn start_server(app: &AppHandle, port: u16, restarts: u32) -> Result<(), Box<dyn
         .env("PORT", port.to_string())
         .env("NODE_ENV", "production")
         .env("KTO_DIST", web.to_string_lossy().to_string())
-        .env("KTO_TTS_BUNDLE", resources.join("tts-cache").to_string_lossy().to_string())
+        .env("KTO_TTS_BUNDLE", lines.to_string_lossy().to_string())
         .env("KTO_TTS_RUNTIME", runtime.to_string_lossy().to_string())
         .env("KTO_DATA_DIR", data.to_string_lossy().to_string())
         .env("KTO_EXIT_WITH_STDIN", "1")
@@ -187,6 +191,34 @@ fn start_server(app: &AppHandle, port: u16, restarts: u32) -> Result<(), Box<dyn
     Ok(())
 }
 
+/// The voice catalogue for this build, with what this computer already has.
+#[tauri::command]
+async fn voice_state(app: AppHandle) -> Result<serde_json::Value, String> {
+    let (parts, present) = voice::state(&app, app.package_info().version.to_string().as_str()).await?;
+    Ok(serde_json::json!({ "parts": parts, "present": present }))
+}
+
+/// Downloads the named parts, then drops the server so it comes back having found them: the
+/// sidecar looks for the voice once, at startup, and the page reconnects to the same port on its
+/// own.
+#[tauri::command]
+async fn voice_install(app: AppHandle, parts: Vec<String>) -> Result<(), String> {
+    voice::install(&app, app.package_info().version.to_string().as_str(), parts).await?;
+    let state = app.state::<Server>();
+    if let Ok(mut slot) = state.child.lock() {
+        if let Some(child) = slot.take() {
+            let _ = child.kill();
+        }
+    }
+    Ok(())
+}
+
+/// Stops a download in progress; the part being fetched is thrown away rather than kept half.
+#[tauri::command]
+fn voice_cancel() {
+    voice::abort();
+}
+
 fn restart(app: AppHandle, port: u16, restarts: u32) {
     tauri::async_runtime::spawn_blocking(move || {
         std::thread::sleep(RESTART_DELAY);
@@ -227,7 +259,7 @@ pub fn run() {
             }
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![app_version])
+        .invoke_handler(tauri::generate_handler![app_version, voice_state, voice_install, voice_cancel])
         .build(tauri::generate_context!())
         .expect("error while building the app")
         .run(|app, event| {

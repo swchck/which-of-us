@@ -8,9 +8,10 @@ import { isFullscreen, toggleFullscreen } from '../fullscreen';
 import { lessMotion, setLessMotion } from '../prefs';
 import { logs, saveLogs, send, view } from '../store';
 import SwitchRow from './SwitchRow.vue';
+import { load as loadVoice, missing } from '../voicePack';
 import CHANGELOG_RAW from '../../../../CHANGELOG.md?raw';
 
-const emit = defineEmits<{ close: [] }>();
+const emit = defineEmits<{ close: []; voice: [] }>();
 
 const APP_VERSION = __APP_VERSION__;
 
@@ -31,6 +32,8 @@ function parseChangelog(raw: string): { version: string; notes: string }[] {
   return result;
 }
 
+const voiceMissing = computed(() => missing().length > 0);
+onMounted(() => void loadVoice());
 const changelog = parseChangelog(CHANGELOG_RAW);
 const showingWhatsNew = ref(false);
 const whatsNewVersion = ref('');
@@ -129,6 +132,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey, true));
           <section>
             <h3><Emoji char="🎙️" /> Ведущий</h3>
             <SwitchRow v-if="view" title="Говорит вслух" note="Выключите, и реплики останутся только на экране" :on="view.settings.narrator" @flip="room('narrator')" />
+            <button v-if="voiceMissing" class="btn small ghost getvoice" @click="emit('voice')">Добавить голос</button>
             <div v-if="choices.length" class="chips" role="radiogroup" aria-label="Голос ведущего">
               <button
                 v-for="o in choices"
@@ -460,5 +464,10 @@ h3 {
   line-height: 1.7;
   white-space: pre-wrap;
   color: var(--ink);
+}
+
+.getvoice {
+  align-self: flex-start;
+  margin-top: 4px;
 }
 </style>

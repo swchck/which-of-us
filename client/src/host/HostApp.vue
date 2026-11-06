@@ -6,8 +6,10 @@ import { useWakeLock } from '../common/wakeLock';
 import Backdrop from './Backdrop.vue';
 import Bublik from './Bublik.vue';
 import { inTauri, toggleFullscreen } from './fullscreen';
+import { load as loadVoice, missing } from './voicePack';
 import { lessMotion } from './prefs';
 import AppSettings from './parts/AppSettings.vue';
+import VoicePack from './parts/VoicePack.vue';
 import RosterToasts from './parts/RosterToasts.vue';
 import ScoreRail from './parts/ScoreRail.vue';
 import DrawView from './screens/DrawView.vue';
@@ -108,6 +110,8 @@ const H = 1080;
 const CONTROLS_BAND = 76;
 
 const appSettings = ref(false);
+// the desktop build ships without the voice; ask for it once, before anyone is mid-game
+const voicePack = ref(false);
 // the desktop window has no title bar and draws its traffic lights over the page, so keep that strip clear
 const TITLE_BAR = inTauri && navigator.userAgent.includes('Mac') ? 28 : 0;
 const titleBar = ref(TITLE_BAR);
@@ -210,6 +214,8 @@ function onKey(ev: KeyboardEvent): void {
 onMounted(() => {
   void fit();
   void audio.loadEngines();
+  // the light build has no voice inside; ask once, before anyone is mid-game
+  void loadVoice().then(() => (voicePack.value = missing().length > 0));
   window.addEventListener('resize', onResize);
   window.addEventListener('keydown', onKey);
   window.addEventListener('mousemove', poke);
@@ -495,7 +501,9 @@ watch(
       <button v-tip="'Настройки'" @click="appSettings = true"><Icon name="gear" /></button>
     </div>
 
-    <AppSettings v-if="appSettings" @close="appSettings = false" />
+    <AppSettings v-if="appSettings" @close="appSettings = false" @voice="appSettings = false; voicePack = true" />
+
+    <VoicePack v-if="voicePack" @close="voicePack = false" />
 
     <div v-if="soundLocked && view" class="unlock" @click.stop="unlock"><Icon name="mute" /> Нажмите, чтобы включить звук</div>
   </div>

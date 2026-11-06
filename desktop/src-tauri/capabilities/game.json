@@ -1,7 +1,7 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "game",
-  "description": "The TV page served by the local game server; it may only toggle fullscreen and drag the frameless window.",
+  "description": "The TV page served by the local game server; it may toggle fullscreen, drag the frameless window and fetch the downloadable voice.",
   "windows": [
     "main"
   ],
@@ -14,6 +14,8 @@
   "permissions": [
     "core:window:allow-set-fullscreen",
     "core:window:allow-is-fullscreen",
-    "core:window:allow-start-dragging"
+    "core:window:allow-start-dragging",
+    "core:event:allow-listen",
+    "core:event:allow-unlisten"
   ]
 }
