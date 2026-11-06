@@ -5,7 +5,8 @@
   },
   "bundle": {
     "resources": {
-      "../../dist/": "web/"
+      "../../build/tts-pack/": null,
+      "../../build/tts-runtime/": null
     }
   }
 }
