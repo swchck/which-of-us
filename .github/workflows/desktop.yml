@@ -182,6 +182,8 @@ jobs:
           # the repository's own token cannot reach another repository, so a
           # checkout without the secret releases fine and leaves the tap alone
           [ -n "$GH_TOKEN" ] || { echo "no TAP_TOKEN set, leaving the tap alone"; exit 0; }
+          # a v1.0.0-rc1 is not what `brew install` should hand people
+          case "$GITHUB_REF_NAME" in *-*) echo "prerelease, leaving the tap alone"; exit 0 ;; esac
           gh api repos/swchck/homebrew-tap/dispatches \
             -f event_type=cask \
             -f 'client_payload[casks]=which-of-us,which-of-us-full' \
