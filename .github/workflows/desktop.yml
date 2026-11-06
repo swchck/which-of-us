@@ -91,13 +91,15 @@ jobs:
           mv /tmp/final.dmg "$DMG"
           rm /tmp/rw.dmg
 
+      # the updater's artifact is the app, not the image, and tauri writes it to bundle/macos:
+      # uploading only bundle/dmg left latest.json with no macOS entry at all
       - uses: actions/upload-artifact@v4
         with:
           name: kto-iz-nas-${{ runner.os }}
           path: |
             desktop/src-tauri/target/release/bundle/dmg/*.dmg
-            desktop/src-tauri/target/release/bundle/dmg/*.tar.gz
-            desktop/src-tauri/target/release/bundle/dmg/*.sig
+            desktop/src-tauri/target/release/bundle/macos/*.app.tar.gz
+            desktop/src-tauri/target/release/bundle/macos/*.app.tar.gz.sig
             desktop/src-tauri/target/release/bundle/nsis/*.exe
             desktop/src-tauri/target/release/bundle/nsis/*.sig
           if-no-files-found: error
@@ -149,7 +151,9 @@ jobs:
           mkdir release
           find installers -name '*.dmg' -exec mv {} release/kto-iz-nas-macos-arm64.dmg \;
           find installers -name '*.exe' -exec mv {} release/kto-iz-nas-windows-x64-setup.exe \;
-          find installers -name '*.tar.gz' -exec mv {} release/ \;
+          # the updater manifest looks the macOS archive up by this exact name
+          find installers -name '*.app.tar.gz' -exec mv {} release/kto-iz-nas-macos-arm64.app.tar.gz \;
+          find installers -name '*.app.tar.gz.sig' -exec mv {} release/kto-iz-nas-macos-arm64.app.tar.gz.sig \;
           find installers -name '*.sig' -exec mv {} release/ \;
           # the full installers carry the voice inside, for a computer that cannot download it
           find full -name '*.dmg' -exec mv {} release/kto-iz-nas-macos-arm64-full.dmg \;
