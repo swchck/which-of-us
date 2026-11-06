@@ -210,7 +210,10 @@
         }
         if (version) localStorage.setItem(LAST_KEY, version);
 
-        // check for available update
+        // the server is usually ready before github answers, and navigating away takes this page
+        // and its banner with it — so hold the splash until the answer is in
+        updatePending = true;
+        const giveUp = setTimeout(releaseSplash, 8000);
         try {
           const update = await internals.invoke('plugin:updater|check', {});
           if (update) {
@@ -220,6 +223,8 @@
             document.getElementById('update-notes').textContent = notes || '';
             document.getElementById('update-notes').style.display = notes ? 'block' : 'none';
             document.getElementById('update-banner').style.display = 'block';
+            // the banner is up; nothing may navigate out from under it now
+            clearTimeout(giveUp);
             document.getElementById('btn-install').onclick = async () => {
               document.getElementById('btn-install').textContent = 'Загрузка…';
               document.getElementById('btn-install').disabled = true;
@@ -228,13 +233,19 @@
             };
             document.getElementById('btn-skip').onclick = () => {
               document.getElementById('update-banner').style.display = 'none';
+              releaseSplash();
             };
+          } else {
+            releaseSplash();
           }
-        } catch {}
+        } catch {
+          releaseSplash();
+        }
       })();
 
       let serverReady = false;
       let whatsNewPending = false;
+      let updatePending = false;
 
       function showWhatsNew(version, notes) {
         document.getElementById('wn-ver').textContent = `Версия ${version}`;
@@ -253,11 +264,17 @@
         if (gameUrl) location.href = gameUrl;
       }
 
+      function releaseSplash() {
+        if (!updatePending) return;
+        updatePending = false;
+        if (serverReady && !whatsNewPending) navigateToGame();
+      }
+
       // called by lib.rs via window.eval when server is ready
       window.__onServerReady = (url) => {
         gameUrl = url;
         serverReady = true;
-        if (!whatsNewPending) navigateToGame();
+        if (!whatsNewPending && !updatePending) navigateToGame();
       };
     </script>
   </body>
