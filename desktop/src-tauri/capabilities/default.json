@@ -13,6 +13,7 @@
     "notification:allow-notify",
     "notification:allow-request-permission",
     "notification:allow-is-permission-granted",
-    "deep-link:allow-get-current"
+    "deep-link:allow-get-current",
+    "allow-app-version"
   ]
 }

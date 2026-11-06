@@ -194,8 +194,18 @@ fn start_server(app: &AppHandle, port: u16, restarts: u32) -> Result<(), Box<dyn
 /// The voice catalogue for this build, with what this computer already has.
 #[tauri::command]
 async fn voice_state(app: AppHandle) -> Result<serde_json::Value, String> {
-    let (parts, present) = voice::state(&app, app.package_info().version.to_string().as_str()).await?;
-    Ok(serde_json::json!({ "parts": parts, "present": present }))
+    let version = app.package_info().version.to_string();
+    match voice::state(&app, &version).await {
+        Ok((parts, present)) => {
+            note(&app, &format!("voice: {} parts offered, {} already here", parts.len(), present.len()));
+            Ok(serde_json::json!({ "parts": parts, "present": present }))
+        }
+        // the screen says this too, but only if it opens; the log is what is left when it does not
+        Err(err) => {
+            note(&app, &format!("voice: cannot read the catalogue: {err}"));
+            Err(err)
+        }
+    }
 }
 
 /// Downloads the named parts, then drops the server so it comes back having found them: the
