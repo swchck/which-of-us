@@ -172,3 +172,17 @@ jobs:
       - run: gh release create "$GITHUB_REF_NAME" release/* --title "$GITHUB_REF_NAME" --generate-notes --repo "$GITHUB_REPOSITORY"
         env:
           GH_TOKEN: ${{ github.token }}
+
+      # the tap downloads the images it was just told about to checksum them, so
+      # this has to come after the release is public
+      - name: Point the Homebrew casks at this version
+        env:
+          GH_TOKEN: ${{ secrets.TAP_TOKEN }}
+        run: |
+          # the repository's own token cannot reach another repository, so a
+          # checkout without the secret releases fine and leaves the tap alone
+          [ -n "$GH_TOKEN" ] || { echo "no TAP_TOKEN set, leaving the tap alone"; exit 0; }
+          gh api repos/swchck/homebrew-tap/dispatches \
+            -f event_type=cask \
+            -f 'client_payload[casks]=which-of-us,which-of-us-full' \
+            -f "client_payload[version]=${GITHUB_REF_NAME#v}"
